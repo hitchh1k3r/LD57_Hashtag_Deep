@@ -7,6 +7,9 @@
       "working_dir": "$project_path/",
       "file_regex": "^\\s*(/.*\\.odin)\\((\\d+):(\\d+)\\)\\s(.*)$",
       "cmd": [ "./build.sh" ],
+      "windows": {
+        "cmd": [ "build.bat" ],
+      }
     },
   ],
   "folders":
