@@ -1,0 +1,14 @@
+*.wasm
+*.bin
+*.exe
+*.exp
+*.sln
+*.obj
+*.pdb
+*.spall
+.vs/
+.vscode/
+*.raddbgi
+*.rdi
+*.sublime-workspace
+*~

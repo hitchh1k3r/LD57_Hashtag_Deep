@@ -1,0 +1,39 @@
+{
+  "build_systems":
+  [
+    {
+      "name": "Build",
+      "quiet": true,
+      "working_dir": "$project_path/",
+      "file_regex": "^\\s*(/.*\\.odin)\\((\\d+):(\\d+)\\)\\s(.*)$",
+      "cmd": [ "./build.sh" ],
+    },
+  ],
+  "folders":
+  [
+    {
+      "name": "Odin Base",
+      "path": "/home/hitchh1k3r/Development/Odin/base",
+    },
+    {
+      "name": "Odin Core",
+      "path": "/home/hitchh1k3r/Development/Odin/core",
+    },
+    {
+      "name": "Odin Vendor",
+      "path": "/home/hitchh1k3r/Development/Odin/vendor",
+    },
+    {
+      "name": "Odin Shared",
+      "path": "/home/hitchh1k3r/Development/Odin/shared",
+    },
+    {
+      "name": "// Project ///////////",
+      "path": "./",
+    },
+  ],
+  "settings":
+  {
+    "atomic_save": true,
+  },
+}
