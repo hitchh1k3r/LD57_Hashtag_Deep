@@ -3,142 +3,210 @@ package main
 import "base:runtime"
 
 import "core:fmt"
-import "core:image/png"
-import "core:math/linalg/glsl"
+import "core:math"
 import "core:os"
 import "core:sys/wasm/js"
 
 import wgl "vendor:wasm/WebGL"
 
-Sprite :: enum {
-  TowerCard_Back,
-  TowerCard_Front,
-  MobCard_Back,
-  MobCard_Front,
-  PathTile_Back,
-  PathTile_Front,
-  Rune_Red,
-  Rune_Blue,
-  Rune_Green,
-  Rune_Purple,
-  Rune_Yellow,
-  Rune_Gray,
-  Cost_Red,
-  Cost_Blue,
-  Cost_Green,
-  Cost_Purple,
-  Cost_Yellow,
-  Cost_Gray,
-  Cost_1,
-  Cost_2,
-  Cost_3,
-  Cost_4,
-  Cost_5,
-  Cost_6,
-  Cost_7,
-  Cost_8,
-  Cost_9,
+has_clicked := false
+has_focus := false
+display_size : [2]i32
+input : struct {
+  held : Inputs,
+  pressed : Inputs,
+  released : Inputs,
+  _last : Inputs,
 }
-
-ATLAS_SIZE :: 2048
-Sprite_atlas := [Sprite][4]f32{
-  .TowerCard_Back =     [4]f32{  0,  0,  4,  6 } * 16,
-  .TowerCard_Front =    [4]f32{  4,  0,  4,  6 } * 16,
-  .MobCard_Back =       [4]f32{  0,  6,  4,  6 } * 16,
-  .MobCard_Front =      [4]f32{  4,  6,  4,  6 } * 16,
-  .PathTile_Back =      [4]f32{  0, 12,  4,  5 } * 16,
-  .PathTile_Front =     [4]f32{  4, 12,  4,  5 } * 16,
-  .Rune_Red =           [4]f32{  0, 31,  2,  2 } * 16,
-  .Rune_Blue =          [4]f32{  2, 31,  2,  2 } * 16,
-  .Rune_Green =         [4]f32{  4, 31,  2,  2 } * 16,
-  .Rune_Purple =        [4]f32{  6, 31,  2,  2 } * 16,
-  .Rune_Yellow =        [4]f32{  8, 31,  2,  2 } * 16,
-  .Rune_Gray =          [4]f32{ 10, 31,  2,  2 } * 16,
-  .Cost_Red =           [4]f32{  0, 33,  1,  1 } * 16,
-  .Cost_Blue =          [4]f32{  1, 33,  1,  1 } * 16,
-  .Cost_Green =         [4]f32{  2, 33,  1,  1 } * 16,
-  .Cost_Purple =        [4]f32{  3, 33,  1,  1 } * 16,
-  .Cost_Yellow =        [4]f32{  4, 33,  1,  1 } * 16,
-  .Cost_Gray =          [4]f32{  5, 33,  1,  1 } * 16,
-  .Cost_1 =             [4]f32{  6, 33,  1,  1 } * 16,
-  .Cost_2 =             [4]f32{  7, 33,  1,  1 } * 16,
-  .Cost_3 =             [4]f32{  8, 33,  1,  1 } * 16,
-  .Cost_4 =             [4]f32{  9, 33,  1,  1 } * 16,
-  .Cost_5 =             [4]f32{ 10, 33,  1,  1 } * 16,
-  .Cost_6 =             [4]f32{ 11, 33,  1,  1 } * 16,
-  .Cost_7 =             [4]f32{ 12, 33,  1,  1 } * 16,
-  .Cost_8 =             [4]f32{ 13, 33,  1,  1 } * 16,
-  .Cost_9 =             [4]f32{ 14, 33,  1,  1 } * 16,
-}
-
-V2 :: [2]f32
-Color :: [4]f32
-DrawVertex :: struct {
-  pos : [2]f32,
-  uv : [2]f32,
+Inputs :: bit_set[Input]
+Input :: enum {
+  Up,
+  Down,
+  Left,
+  Right,
 }
 
 main :: proc() {
   fmt.println("Initializing...")
+  init_audio()
+  init_graphics()
+  generate_room()
 
-  if !wgl.CreateCurrentContextById("canvas", { .disableAntialias, .disableAlpha, .disableDepth }) {
-    crash("Could not create WebGL context")
-  }
-  display_size = { 640, 480 }
-  js.set_element_key_f64("canvas", "width", f64(display_size.x))
-  js.set_element_key_f64("canvas", "height", f64(display_size.y))
+  // Event Handlers
+    resize_canvas :: proc() {
+      window_rect := js.get_bounding_client_rect("canvas")
+      display_size.x = i32(window_rect.width)
+      display_size.y = i32(window_rect.height)
+      js.set_element_key_f64("canvas", "width", f64(display_size.x))
+      js.set_element_key_f64("canvas", "height", f64(display_size.y))
+    }
 
-  js.set_element_key_string("body", "style", "background:rgb(200, 100, 0);")
-  wgl.ClearColor(1, 0.5, 0, 1)
+    js.add_window_event_listener(.Resize, nil, proc(e : js.Event) {
+      resize_canvas()
+    })
+    resize_canvas()
 
-  prog : wgl.Program
-  ok : bool
-  if prog, ok = wgl.CreateProgramFromStrings({VS}, {FS}); !ok {
-    crash("Could not create program")
-  }
-  uni_matrix = wgl.GetUniformLocation(prog, "u_matrix")
+    js.add_window_event_listener(.Key_Down, nil, proc(e : js.Event) {
+      if !e.data.key.repeat {
+        switch e.data.key.code {
+          /*
+          case "Enter":
+            raw_input.key_enter = true
+          case "KeyW":
+            raw_input.key_w = true
+          case "KeyA":
+            raw_input.key_a = true
+          case "KeyS":
+            raw_input.key_s = true
+          case "KeyD":
+            raw_input.key_d = true
+          case "KeyZ":
+            raw_input.key_z = true
+          case "KeyQ":
+            raw_input.key_q = true
+          case "KeyH":
+            raw_input.key_h = true
+          case "KeyT":
+            raw_input.key_t = true
+          case "KeyG":
+            raw_input.key_g = true
+          case "KeyX":
+            raw_input.key_x = true
+          case "KeyC":
+            raw_input.key_c = true
+          case "KeyR":
+            raw_input.key_r = true
+          */
+          case "ArrowUp":
+            input.held += { .Up }
+          case "ArrowLeft":
+            input.held += { .Left }
+          case "ArrowDown":
+            input.held += { .Down }
+          case "ArrowRight":
+            input.held += { .Right }
+        }
+      }
+      // js.event_prevent_default()
+    })
+    js.add_window_event_listener(.Key_Up, nil, proc(e : js.Event) {
+      switch e.data.key.code {
+          /*
+          case "Enter":
+            raw_input.key_enter = true
+          case "KeyW":
+            raw_input.key_w = true
+          case "KeyA":
+            raw_input.key_a = true
+          case "KeyS":
+            raw_input.key_s = true
+          case "KeyD":
+            raw_input.key_d = true
+          case "KeyZ":
+            raw_input.key_z = true
+          case "KeyQ":
+            raw_input.key_q = true
+          case "KeyH":
+            raw_input.key_h = true
+          case "KeyT":
+            raw_input.key_t = true
+          case "KeyG":
+            raw_input.key_g = true
+          case "KeyX":
+            raw_input.key_x = true
+          case "KeyC":
+            raw_input.key_c = true
+          case "KeyR":
+            raw_input.key_r = true
+          */
+          case "ArrowUp":
+            input.held -= { .Up }
+          case "ArrowLeft":
+            input.held -= { .Left }
+          case "ArrowDown":
+            input.held -= { .Down }
+          case "ArrowRight":
+            input.held -= { .Right }
+      }
+      // js.event_prevent_default()
+    })
+    js.add_window_event_listener(.Touch_Start, nil, proc(e : js.Event) {
+      /*
+      if ready_for_touch {
+        raw_input.touch_start = true
+        show_touch_input = true
+      }
+      */
+    })
+    js.add_window_event_listener(.Pointer_Down, nil, proc(e : js.Event) {
+      /*
+      if show_touch_input {
+        SCREEN_TOP :: 0.0
+        SCREEN_BOTTOM :: 16.0 * game.ROOM_HEIGHT
+        SCREEN_LEFT :: 0.0
+        SCREEN_RIGHT :: 16.0 * game.ROOM_WIDTH
 
-  wgl.UseProgram(prog)
-  vert_buffer := wgl.CreateBuffer()
-  attr_pos := wgl.GetAttribLocation(prog, "a_position")
-  attr_tex := wgl.GetAttribLocation(prog, "a_texcoord")
-  wgl.EnableVertexAttribArray(attr_pos)
-  wgl.EnableVertexAttribArray(attr_tex)
-  wgl.BindBuffer(wgl.ARRAY_BUFFER, vert_buffer)
-  wgl.VertexAttribPointer(attr_pos, 2, wgl.FLOAT, false, size_of(DrawVertex), offset_of(DrawVertex, pos))
-  wgl.VertexAttribPointer(attr_tex, 2, wgl.FLOAT, false, size_of(DrawVertex), offset_of(DrawVertex, uv))
+        pos := [2]f64{ f64(e.mouse.client.x), f64(e.mouse.client.y) }
+        pos -= { canvas_rect.x, canvas_rect.y }
+        pos /= { canvas_rect.width, canvas_rect.height }
+        pos *= { 16*game.ROOM_WIDTH, 16*game.ROOM_HEIGHT }
 
-  sprite_texture := wgl.CreateTexture()
-  wgl.BindTexture(wgl.TEXTURE_2D, sprite_texture)
-  img, _ := png.load_from_bytes(#load("../res/spritesheet.png"))
-  wgl.TexImage2DSlice(wgl.TEXTURE_2D, 0, wgl.RGBA, ATLAS_SIZE, ATLAS_SIZE, 0, wgl.RGBA, wgl.UNSIGNED_BYTE, img.pixels.buf[:])
-  wgl.TexParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_MIN_FILTER, i32(wgl.NEAREST))
-  wgl.TexParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_MAG_FILTER, i32(wgl.NEAREST))
+        check_button :: proc(pos : [2]f64, center : [2]f64, radius : f64) -> bool {
+          return abs(pos.x-center.x) + abs(pos.y-center.y) <= radius
+        }
+
+        if check_button(pos, { SCREEN_LEFT + 10, SCREEN_TOP + 10 }, 25) {
+          raw_input.touch_undo = true
+        }
+
+        if check_button(pos, { SCREEN_RIGHT - 10, SCREEN_TOP + 10 }, 25) {
+          raw_input.touch_redo = true
+        }
+
+        if check_button(pos, { SCREEN_RIGHT - (31+3.5), SCREEN_BOTTOM - ((31+3.5) + (3.5+15.5+5)) }, 20) {
+          raw_input.touch_up = true
+        }
+
+        if check_button(pos, { SCREEN_RIGHT - ((31+3.5) + (3.5+15.5+5)), SCREEN_BOTTOM - (31+3.5) }, 20) {
+          raw_input.touch_left = true
+        }
+
+        if check_button(pos, { SCREEN_RIGHT - (31+3.5), SCREEN_BOTTOM - ((31+3.5) - (3.5+15.5+5)) }, 20) {
+          raw_input.touch_down = true
+        }
+
+        if check_button(pos, { SCREEN_RIGHT - ((31+3.5) - (3.5+15.5+5)), SCREEN_BOTTOM - (31+3.5) }, 20) {
+          raw_input.touch_right = true
+        }
+      }
+      */
+      if !has_clicked {
+        has_clicked = true
+        has_focus = true
+        music := load_sound("Echoes of the Deep.mp3", true)
+        play_sound(music)
+      }
+    })
+    js.add_window_event_listener(.Context_Menu, nil, proc(e : js.Event) {
+      // js.event_prevent_default()
+    })
+    js.add_window_event_listener(.Focus, nil, proc(e : js.Event) {
+      has_focus = true
+    })
+    js.add_window_event_listener(.Blur, nil, proc(e : js.Event) {
+      has_focus = false
+    })
 
   fmt.println("Starting...")
 }
 
-draw_buffer : [dynamic]DrawVertex
-
-draw_sprite :: proc(sprite : Sprite, x, y : f32) {
-  src := Sprite_atlas[sprite]
-  dst := [4]f32{ x, y, x+src[2], y+src[3] }
-  src[2] += src[0]
-  src[3] += src[1]
-  src /= ATLAS_SIZE
-  append(&draw_buffer,
-      DrawVertex{ { dst[0], dst[1] }, { src[0], src[1] } },
-      DrawVertex{ { dst[0], dst[3] }, { src[0], src[3] } },
-      DrawVertex{ { dst[2], dst[1] }, { src[2], src[1] } },
-      DrawVertex{ { dst[0], dst[3] }, { src[0], src[3] } },
-      DrawVertex{ { dst[2], dst[3] }, { src[2], src[3] } },
-      DrawVertex{ { dst[2], dst[1] }, { src[2], src[1] } },
-    )
+player : struct {
+  pos : Cell,
 }
 
-display_size : [2]i32
+camera_pos : V2
 
-uni_matrix : i32
+DELTA_TIME :: 1./60.
 
 app_defunct := false
 @(export)
@@ -147,69 +215,53 @@ step :: proc(dt : f64) -> bool {
     return false
   }
 
-  clear(&draw_buffer)
-  for r in 0..<9 {
-    for q in 0..<7 {
-      draw_sprite(.PathTile_Front, f32(62*q + 31*r), f32(39*r))
-    }
-  }
-  for i in 0..<12 {
-    pos := [2]f32{ f32((i % 5) * 50), f32(i * 5 + (i / 5) * 80) }
-    draw_sprite(.TowerCard_Front, pos.x, pos.y)
-    draw_sprite(.Cost_Red+Sprite(i % 6), pos.x + 16, pos.y + 79)
-    draw_sprite(.Cost_1+Sprite(i % 9), pos.x + 32, pos.y + 79)
-  }
-  draw_sprite(.Rune_Red,      8, 440)
-  draw_sprite(.Rune_Blue,    44, 440)
-  draw_sprite(.Rune_Green,   80, 440)
-  draw_sprite(.Rune_Purple, 116, 440)
-  draw_sprite(.Rune_Yellow, 152, 440)
-  draw_sprite(.Rune_Gray,   188, 440)
+  input.pressed = input.held - input._last
+  input.released = input._last - input.held
+  input._last = input.held
 
-  wgl.Viewport(0, 0, display_size.x, display_size.y)
-  wgl.Clear(wgl.COLOR_BUFFER_BIT)
-  wgl.UniformMatrix4fv(uni_matrix, glsl.mat4Ortho3d(0, f32(display_size.x), f32(display_size.y), 0, 100, 0))
+  old_pos := player.pos
+  switch input.pressed & { .Up, .Left, .Right, .Down } {
+    case { .Up }:
+      player.pos += { 0, -1 }
+    case { .Down }:
+      player.pos += { 0, 1 }
+    case { .Left }:
+      player.pos += { -1, 0 }
+    case { .Right }:
+      player.pos += { 1, 0 }
+  }
+  if player.pos.x < 0 || player.pos.x >= room.width ||
+     player.pos.y < 0 || player.pos.y >= room.height
+  {
+    player.pos = old_pos
+  }
+  switch room.tiles[cell_to_idx(player.pos)] {
+    case .Floor, .Up_Ladder:
+    case .Ladder:
+      delete(room.tiles)
+      delete(room.tile_flags)
+      generate_room()
+    case .Wall:
+      player.pos = old_pos
+  }
 
-  wgl.BufferDataSlice(wgl.ARRAY_BUFFER, draw_buffer[:], wgl.DYNAMIC_DRAW)
-  wgl.DrawArrays(wgl.TRIANGLES, 0, len(draw_buffer))
+  camera_pos = math.lerp(camera_pos, cell_to_v2(player.pos), half_life_interp(0.1))
+  set_camera(camera_pos, 8)
+  update_room()
+  draw_room()
+
+  if !has_clicked || !has_focus {
+    set_camera(0, 0.1)
+    draw_sprite(.Solid, { 0, 0 }, tint = { 0, 0, 0, 0.75 })
+    set_camera(0, 5)
+    draw_sprite(.Click_To_Play, { 0, 0 })
+  }
+
+  wgl.ClearColor(0.1, 0, 0.1, 1)
+  render()
 
   return true
 }
-
-VS :: `
-  attribute vec4 a_position;
-  attribute vec2 a_texcoord;
-
-  uniform mat4 u_matrix;
-
-  varying vec2 v_texcoord;
-
-  void main() {
-    // Multiply the position by the matrix.
-    gl_Position = u_matrix * a_position;
-
-    // Pass the texcoord to the fragment shader.
-    v_texcoord = a_texcoord;
-  }
-  `
-
-FS :: `
-  precision mediump float;
-
-  // Passed in from the vertex shader.
-  varying vec2 v_texcoord;
-
-  // The texture.
-  uniform sampler2D u_texture;
-
-  void main() {
-    vec4 col = texture2D(u_texture, v_texcoord);
-    if (col.a < 0.01) {
-      discard;
-    }
-    gl_FragColor = col;
-  }
-  `
 
 crash :: proc(msg : string) -> ! {
   js.evaluate(fmt.tprintf("document.body.innerHTML = '%v';", msg))

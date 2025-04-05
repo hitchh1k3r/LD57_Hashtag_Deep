@@ -3,15 +3,13 @@
   html, body {
     margin: 0;
     padding: 0;
-    color:#FFF;
+    color:#000;
     font-size: 2em;
     text-align: center;
   }
   #canvas {
     width: 100vw;
     height: 100vh;
-    object-fit:contain;
-    image-rendering:pixelated;
   }
   #log {
     font-size: 0.5em;
@@ -32,6 +30,49 @@
 <body id="body"><canvas id="canvas"></canvas><pre id="log"></pre>
 <script type="text/javascript" src="odin.js"></script>
 <script type="text/javascript">
-  odin.runWasm("ld57.wasm", document.getElementById("log"));
+  const wasmMemoryInterface = new odin.WasmMemoryInterface();
+  odin.runWasm("ld57.wasm", document.getElementById("log"), {
+    "game_js": {
+      init_audio: () => {
+        window.all_audio = { idx: 0 };
+      },
+      load_sound: (filename_ptr, filename_len, is_looping) => {
+        let filename = wasmMemoryInterface.loadString(filename_ptr, filename_len);
+        let audio = new Audio();
+        audio.loop = is_looping;
+        audio.src = filename;
+        audio.load();
+        window.all_audio[window.all_audio.idx] = { audio: audio };
+        window.all_audio.idx += 1;
+        return window.all_audio.idx-1;
+      },
+      make_sound: (data_ptr, data_len, is_looping) => {
+        let blob = new Blob([wasmMemoryInterface.loadBytes(data_ptr, data_len)], { type: 'audio/mp3' });
+        let url = window.URL.createObjectURL(blob);
+        let audio = new Audio();
+        audio.loop = is_looping;
+        audio.src = url;
+        audio.load();
+        window.all_audio[window.all_audio.idx] = { audio: audio, url: url };
+        window.all_audio.idx += 1;
+        return window.all_audio.idx-1;
+      },
+      play_sound: (id) => {
+        let sound = window.all_audio[id];
+        sound.audio.currentTime = 0;
+        sound.audio.play();
+      },
+      stop_sound: (id) => {
+        let sound = window.all_audio[id];
+        sound.audio.pause();
+        // sound.audio.stop();
+      },
+      free_sound: (id) => {
+        let sound = window.all_audio[id];
+        sound.audio.src = "";
+        URL.revokeObjectURL(sound.url);
+        window.all_audio[id] = null;
+      },
+    }}, wasmMemoryInterface);
 </script>
 </body></html>

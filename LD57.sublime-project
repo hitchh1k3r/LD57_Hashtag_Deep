@@ -8,6 +8,7 @@
       "file_regex": "^\\s*(/.*\\.odin)\\((\\d+):(\\d+)\\)\\s(.*)$",
       "cmd": [ "./build.sh" ],
       "windows": {
+        "file_regex": "^(.+)\\(([0-9]+):([0-9]+)\\) (.+)$",
         "cmd": [ "build.bat" ],
       }
     },
@@ -33,6 +34,10 @@
     {
       "name": "// Project ///////////",
       "path": "./",
+    },
+    {
+      "name": "// Source ////////////",
+      "path": "./src/",
     },
   ],
   "settings":
