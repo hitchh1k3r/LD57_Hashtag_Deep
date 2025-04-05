@@ -9,6 +9,9 @@ import "core:sys/wasm/js"
 
 import wgl "vendor:wasm/WebGL"
 
+PLAYER_VISION :: 30
+KNOWLEDGE_EXTRA :: 15
+
 has_clicked := false
 has_focus := false
 display_size : [2]i32
@@ -30,7 +33,7 @@ main :: proc() {
   fmt.println("Initializing...")
   init_audio()
   init_graphics()
-  generate_room()
+  generate_room(0, false)
 
   // Event Handlers
     resize_canvas :: proc() {
@@ -200,9 +203,7 @@ main :: proc() {
   fmt.println("Starting...")
 }
 
-player : struct {
-  pos : Cell,
-}
+player : EntityPlayer
 
 camera_pos : V2
 
@@ -235,26 +236,60 @@ step :: proc(dt : f64) -> bool {
   {
     player.pos = old_pos
   }
-  switch room.tiles[cell_to_idx(player.pos)] {
-    case .Floor, .Up_Ladder:
-    case .Ladder:
-      delete(room.tiles)
-      delete(room.tile_flags)
-      generate_room()
-    case .Wall:
-      player.pos = old_pos
+  if player.pos != old_pos {
+    tile := &room.tiles[cell_to_idx(player.pos)]
+    switch tile.floor {
+      case .None, .Water:
+        player.pos = old_pos
+      case .Dirt, .Grass, .Sand, .Stone:
+        // nop
+    }
+    switch tile.fill {
+      case .None:
+        // nop
+      case .Tree:
+        player.pos = old_pos
+        tile.fill = .None
+        tile.item = .Wood
+      case .Crate:
+        player.pos = old_pos
+      case .Stone:
+        player.pos = old_pos
+        tile.fill = .None
+        if tile.item == .None {
+          tile.item = .Stone
+        }
+      case .Dirt:
+        player.pos = old_pos
+      case .Ladder_Down:
+        delete(room.tiles)
+        generate_room(room.level+1, false)
+      case .Ladder_Up:
+        /*
+        delete(room.tiles)
+        generate_room(room.level-1, true)
+        */
+    }
+    if player.pos != old_pos {
+      switch tile.item {
+        case .None:
+        case .Wood, .Coal, .Stone:
+          player.held, tile.item = tile.item, player.held
+      }
+      update_room()
+    }
   }
 
-  camera_pos = math.lerp(camera_pos, cell_to_v2(player.pos), half_life_interp(0.1))
+  camera_pos = math.lerp(camera_pos, cell_to_v2(player.pos), half_life_interp(0.25))
   set_camera(camera_pos, 8)
-  update_room()
   draw_room()
 
   if !has_clicked || !has_focus {
     set_camera(0, 0.1)
     draw_sprite(.Solid, { 0, 0 }, tint = { 0, 0, 0, 0.75 })
-    set_camera(0, 5)
-    draw_sprite(.Click_To_Play, { 0, 0 })
+    set_camera(0, 0.5)
+    // draw_sprite(.Click_To_Play, { 0, 0 })
+    draw_string("Click to Play!", { 0, 0 })
   }
 
   wgl.ClearColor(0.1, 0, 0.1, 1)
