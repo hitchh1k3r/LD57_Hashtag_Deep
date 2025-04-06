@@ -15,16 +15,21 @@ Stats:
   stone harvest ()
   defense       (?)
 
-Ingredients:
-  WOOD
-  STONE
-  LEATHER
-  COAL
-  IRON
-  DIAMOND
+Ingredients: (what you get from alter when offered)
+  WOOD -> cursed axe (2 zombies)
+  STONE -> cursed mallet (2 zombies)
+  LEATHER -> map (3 zombies, reveal exit, one time)
+  COAL -> energy fruit (2 zombies)
+  IRON -> heart apple (2 zombies)
+  DIAMOND -> random upgrade (4 zombies)
+  ALREADY_HAVE_UPGRADES -> random upgrade (4 zombies)
+  TORCH -> SMOKE_SCREEN (2 zombies)
+  SMOKE_SCREEN -> nothing (2 zombies)
 
 Recipes:
   UNCRAFTABLE -> heart apple (+2 total health +full heal / max 12)
+  UNCRAFTABLE -> health fruit (+full heal)
+  UNCRAFTABLE -> energy fruit (+full energy reset)
 
   LEATHER+WOOD -> walking staff (energy A +3)
   COAL+STONE -> mortar          (energy B +3)
@@ -51,5 +56,5 @@ Recipes:
   IRON+LEATHER -> iron shield       (defense A ?)
   DIAMOND+LEATHER -> diamond shield (defense A ?)
 
-  COAL+LEATHER -> compass   (reveal the exit)
+  COAL+LEATHER -> compass   (reveal the exit, when entering level)
   COAL+COAL -> smoke screen (enemies will not see you)

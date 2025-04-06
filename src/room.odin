@@ -10,6 +10,7 @@ Room :: struct {
   tiles : []Tile,
   width : int,
   height : int,
+  ladder_pos : Cell,
   entities : [dynamic]Entity,
 }
 
@@ -26,10 +27,11 @@ EntityPlayer :: struct {
   dir : Direction,
   held : Item,
   hit : f32,
+  energy_hit : f32,
+  shield_hit : f32,
   health : int,
+  shields : int,
   energy : int,
-  total_health : int,
-  total_energy : int,
 }
 EntityZombie :: struct {
   pos : Cell,
@@ -59,9 +61,68 @@ TileFill :: enum {
 
 Item :: enum {
   None,
+
   Wood,
   Stone,
   Coal,
+  Iron,
+  Diamond,
+
+  Torch,
+  Smoke_Screen,
+
+  Walking_Staff,
+  Mortar,
+  Vision_Tube,
+  Spy_Glass,
+  Iron_Lamp,
+  Diamond_Lamp,
+  Iron_Sword,
+  Diamond_Sword,
+  Wood_Mallet,
+  Stone_Mallet,
+  Iron_Mallet,
+  Diamond_Mallet,
+  Stone_Axe,
+  Iron_Axe,
+  Diamond_Axe,
+  Stone_Shield,
+  Iron_Shield,
+  Diamond_Shield,
+  Compass,
+}
+
+Item_sprite := [Item]Sprite{
+  .None = .None,
+
+  .Wood = .Item_Wood,
+  .Stone = .Item_Stone,
+  .Coal = .Item_Coal,
+  .Iron = .Item_Coal,
+  .Diamond = .Item_Coal,
+
+  .Torch = .Item_Coal,
+  .Smoke_Screen = .Item_Coal,
+
+  .Walking_Staff = .Item_Coal,
+  .Mortar = .Item_Coal,
+  .Vision_Tube = .Item_Coal,
+  .Spy_Glass = .Item_Coal,
+  .Iron_Lamp = .Item_Coal,
+  .Diamond_Lamp = .Item_Coal,
+  .Iron_Sword = .Item_Coal,
+  .Diamond_Sword = .Item_Coal,
+  .Wood_Mallet = .Item_Coal,
+  .Stone_Mallet = .Item_Coal,
+  .Iron_Mallet = .Item_Coal,
+  .Diamond_Mallet = .Item_Coal,
+  .Stone_Axe = .Item_Coal,
+  .Iron_Axe = .Item_Coal,
+  .Diamond_Axe = .Item_Coal,
+  .Stone_Shield = .Item_Coal,
+  .Iron_Shield = .Item_Coal,
+  .Diamond_Shield = .Item_Coal,
+  .Compass = .Item_Coal,
 }
 
 Tile :: struct {
@@ -79,65 +140,74 @@ TileFlag :: enum {
   Light,
 }
 
-GAME_SEED :: 4201020
 room : Room
 
 generate_room :: proc(level : int, start_at_exit : bool) {
+  if room.tiles != nil {
+    delete(room.tiles)
+  }
   zombie_call = 0
-  player.energy = player.total_energy
+  player.shields = stats.max_shields
+  player.energy = stats.max_energy
   screen_dismiss = true
-  on_screen_text = get_wizdom()
+  ok : bool
+  if on_screen_text, ok = level_thoughts[level]; !ok {
+    on_screen_text = get_wizdom()
+  }
   room.level = level
   rand.reset(u64(level))
-  room.width = 8 + rand.int_max(32)
-  room.height = 8 + rand.int_max(16)
+  room.width = 8 + level + rand.int_max(level+2)
+  room.height = 8 + level + rand.int_max(level+2)
+  min_exit_dist := min(room.width, room.height)-1
   room.tiles = make([]Tile, room.width*room.height)
   room.entities = make([dynamic]Entity)
   idx := 0
-  scale := 0.01
   for y in 0..<room.height {
     for x in 0..<room.width {
       tile := &room.tiles[idx]
       idx += 1
 
-      mat_val := 0.5 + 0.5*noise.noise_2d(GAME_SEED + i64(room.level), scale*noise.Vec2{ f64(x), f64(y) })
-      if mat_val < 0.1 {
-        tile.floor = .Water
-      } else if mat_val < 0.15 {
-        tile.floor = .Sand
-      } else if mat_val < 0.33 {
-        tile.floor = .Dirt
-      } else if mat_val < 0.5 {
-        tile.floor = .Grass
+      ELEVATION_SCALE := 0.01
+      DECORATION_SCALE := 0.075
+      elevation := noise.noise_2d(generator_seed + i64(room.level), ELEVATION_SCALE*noise.Vec2{ f64(x), f64(y) })
+      decoration := noise.noise_2d(generator_seed + 1000 + i64(room.level), DECORATION_SCALE*noise.Vec2{ f64(x), f64(y) })
+      elevation = math.remap(elevation, -1, 1, 0.2 * 5/(f32(level)+5), 1 - 0.575 * 10/(f32(level)+10))
+      decoration = math.remap(decoration, -1, 1, 0, 1)
+
+      if elevation < 0.10 {
+        tile.floor = .Water // [ 0.00, 0.10 ] 10
+      } else if elevation < 0.15 {
+        tile.floor = .Sand //  [ 0.10, 0.15 ]  5
+      } else if elevation < 0.45 {
+        tile.floor = .Grass // [ 0.15, 0.45 ] 30
+      } else if elevation < 0.50 {
+        tile.floor = .Dirt //  [ 0.45, 0.50 ]  5
       } else {
-        tile.floor = .Stone
+        tile.floor = .Stone // [ 0.50, 1.00 ] 50
       }
 
       switch tile.floor {
         case .None, .Water, .Sand:
         case .Dirt:
-          if mat_val*rand.float32() > 0.275 {
-            tile.fill = .Tree
-          }
-          if rand.float32() > 0.995 {
+          if decoration*rand.float32() > 0.9 {
             append_elem(&room.entities, Entity{ variant = EntityZombie {
                 pos = { x, y },
               }})
           }
         case .Grass:
-          if mat_val*rand.float32() > 0.35 {
+          if decoration*rand.float32() > 0.6 {
             tile.fill = .Tree
-          } else if mat_val*rand.float32() > 0.75 {
-            tile.item = .Wood
           }
         case .Stone:
-          if mat_val*rand.float32() > 0.5 {
+          if decoration*rand.float32() > 0.5 {
             tile.fill = .Stone
-            if mat_val*rand.float32() > 0.8 {
+            if elevation*decoration*rand.float32() > 0.5 {
               tile.item = .Coal
             }
-          } else if mat_val*rand.float32() > 0.75 {
-            tile.item = .Stone
+          } else if decoration*rand.float32() > 0.8 {
+            append_elem(&room.entities, Entity{ variant = EntityZombie {
+                pos = { x, y },
+              }})
           }
       }
     }
@@ -146,24 +216,41 @@ generate_room :: proc(level : int, start_at_exit : bool) {
   for room.tiles[cell_to_idx(player.pos)].floor == .Water {
     player.pos = { rand.int_max(room.width-2)+1, rand.int_max(room.height-2)+1 }
   }
-  ladder_pos := Cell{ rand.int_max(room.width-2)+1, rand.int_max(room.height-2)+1 }
-  for ladder_pos == player.pos ||
-      room.tiles[cell_to_idx(ladder_pos)].floor == .Water
+  room.ladder_pos = Cell{ rand.int_max(room.width-2)+1, rand.int_max(room.height-2)+1 }
+  ttl := 10_000
+  dist :: proc(a, b : Cell) -> int {
+    d := a - b
+    return abs(d.x) + abs(d.y)
+  }
+  for dist(room.ladder_pos, player.pos) < min_exit_dist ||
+      room.tiles[cell_to_idx(room.ladder_pos)].floor == .Water
   {
-    ladder_pos = Cell{ rand.int_max(room.width-2)+1, rand.int_max(room.height-2)+1 }
+    room.ladder_pos = Cell{ rand.int_max(room.width-2)+1, rand.int_max(room.height-2)+1 }
+    ttl -= 1
+    if ttl < 0 {
+      break
+    }
   }
   if level == 0 {
     room.tiles[cell_to_idx(player.pos)].fill = .None
   } else {
     room.tiles[cell_to_idx(player.pos)].fill = .Ladder_Up
   }
-  room.tiles[cell_to_idx(ladder_pos)].fill = .Ladder_Down
+  room.tiles[cell_to_idx(room.ladder_pos)].fill = .Ladder_Down
   if start_at_exit {
-    player.pos, ladder_pos = ladder_pos, player.pos
+    player.pos, room.ladder_pos = room.ladder_pos, player.pos
   }
-  fill_vision(player.pos, { .Vision }, PLAYER_VISION, { .Known }, PLAYER_VISION+KNOWLEDGE_EXTRA)
-  fill_vision(ladder_pos, { .Known }, 20)
-  camera_pos = { f32(ladder_pos.x), f32(ladder_pos.y) }
+  fill_vision(player.pos, { .Vision }, stats.vision_range, { .Known }, stats.vision_range+stats.vision_extra)
+  camera_pos = { f32(player.pos.x), f32(player.pos.y) }
+  if .Compass in upgrades {
+    reveal_exit()
+  }
+}
+
+reveal_exit :: proc() {
+  fill_vision(room.ladder_pos, { .Known }, 20)
+  camera_pos = { f32(room.ladder_pos.x), f32(room.ladder_pos.y) }
+  scroll_speed = 5
 }
 
 cell_to_idx :: proc(cell : Cell) -> int {
@@ -175,16 +262,17 @@ update_room :: proc() {
   for &tile in room.tiles {
     tile.flags -= { .Vision }
   }
+  if zombie_call > 0 {
+    zombie_call -= 1
+  }
   for &entity in room.entities {
-    if zombie_call > 0 {
-      zombie_call -= 1
-    }
     switch &entity in entity.variant {
       case EntityZombie:
         update_zombie(&entity)
     }
   }
-  fill_vision(player.pos, { .Vision }, PLAYER_VISION, { .Known }, PLAYER_VISION+KNOWLEDGE_EXTRA)
+  update_stats()
+  fill_vision(player.pos, { .Vision }, stats.vision_range, { .Known }, stats.vision_range+stats.vision_extra)
 }
 
 zombie_call : int
@@ -196,7 +284,7 @@ update_zombie :: proc(zombie : ^EntityZombie) {
       return false
     }
     tile := room.tiles[cell_to_idx(pos)]
-    if tile.fill != .None ||
+    if (tile.fill != .None && tile.fill != .Ladder_Down && tile.fill != .Ladder_Up) ||
        tile.floor == .None ||
        tile.floor == .Water
     {
@@ -222,31 +310,22 @@ update_zombie :: proc(zombie : ^EntityZombie) {
       }
     }
     old_pos := zombie.pos
-    if dir.x < 0 {
-      if _can_move_to(zombie.pos + { -1, 0 }) {
-        zombie.pos += { -1, 0 }
-        zombie.dir = .Left
-      }
-    } else if dir.x > 0 {
-      if _can_move_to(zombie.pos + { 1, 0 }) {
-        zombie.pos += { 1, 0 }
-        zombie.dir = .Right
-      }
-    } else if dir.y < 0 {
-      if _can_move_to(zombie.pos + {  0, -1 }) {
-        zombie.pos += {  0, -1 }
-        zombie.dir = .Up
-      }
-    } else if dir.y > 0 {
-      if _can_move_to(zombie.pos + { 0,  1 }) {
-        zombie.pos += { 0,  1 }
-        zombie.dir = .Down
-      }
+    if dir.x < 0 && _can_move_to(zombie.pos + { -1, 0 }) {
+      zombie.pos += { -1, 0 }
+      zombie.dir = .Left
+    } else if dir.x > 0 && _can_move_to(zombie.pos + { 1, 0 }) {
+      zombie.pos += { 1, 0 }
+      zombie.dir = .Right
+    } else if dir.y < 0 && _can_move_to(zombie.pos + {  0, -1 }) {
+      zombie.pos += {  0, -1 }
+      zombie.dir = .Up
+    } else if dir.y > 0 && _can_move_to(zombie.pos + { 0,  1 }) {
+      zombie.pos += { 0,  1 }
+      zombie.dir = .Down
     }
     if zombie.pos == player.pos {
       zombie.pos = old_pos
-      player.health -= 1
-      player.hit = 1
+      damage_player(false)
     }
 
     tile := &room.tiles[cell_to_idx(zombie.pos)]
@@ -373,40 +452,36 @@ draw_room :: proc() {
           case .Water:
             draw_sprite(.Floor_Water, tile_pos, { 0.5, 0.5 })
         }
-        overlay := Sprite.Solid
+        overlay := Sprite.None
         switch tile.fill {
           case .None:
+            draw_sprite(Item_sprite[tile.item], tile_pos)
           case .Tree:
             draw_sprite(.Tree, tile_pos, { 0.5, 0.66 })
           case .Crate:
             draw_sprite(.Crate, tile_pos, { 0.5, 0.66 })
           case .Stone:
-            switch tile.item {
-              case .None, .Wood, .Stone:
+            #partial switch tile.item {
+              case:
                 draw_sprite(.Wall, tile_pos, { 0.5, 0.75 })
               case .Coal:
                 draw_sprite(.Wall_Sockets, tile_pos, { 0.5, 0.75 })
-                draw_sprite(.Wall_Fillins, tile_pos, { 0.5, 0.75 }, { 0.3, 0.1, 0.5, 1 })
+                draw_sprite(.Wall_Fillins, tile_pos, { 0.5, 0.75 }, { 0.3, 0.1, 0.45, 1 })
+              case .Iron:
+                draw_sprite(.Wall_Sockets, tile_pos, { 0.5, 0.75 })
+                draw_sprite(.Wall_Fillins, tile_pos, { 0.5, 0.75 }, { 0.5, 0.4, 0.2, 1 })
+              case .Diamond:
+                draw_sprite(.Wall_Sockets, tile_pos, { 0.5, 0.75 })
+                draw_sprite(.Wall_Fillins, tile_pos, { 0.5, 0.75 }, { 0.5, 0.5, 0.75, 1 })
             }
           case .Ladder_Down:
             draw_sprite(.Ladder_Down, tile_pos, { 0.5, 0.66 })
           case .Ladder_Up:
             overlay = .Ladder_Up
         }
-        switch tile.item {
-          case .None:
-          case .Wood:
-            draw_sprite(.Item_Wood, tile_pos)
-          case .Stone:
-            draw_sprite(.Item_Stone, tile_pos)
-          case .Coal:
-            draw_sprite(.Item_Coal, tile_pos)
-        }
         draw_entities({ x, y })
-        if overlay != .Solid {
-          // TODO (hitch) 2025-04-05 We don't have a correct pivot for overlays
-          draw_sprite(overlay, tile_pos, { 0.5, 0.66 })
-        }
+        // TODO (hitch) 2025-04-05 We don't have a correct pivot for overlays
+        draw_sprite(overlay, tile_pos, { 0.5, 0.66 })
       } else if tile.flags & { .Known } != {} {
         floor_glyph := Sprite.Glyph_Unknown
         switch tile.floor {
@@ -465,15 +540,7 @@ draw_entities :: proc(pos : Cell) {
           draw_sprite(sprites[entity.dir], tile_pos, { 0.5, 0.75 }, tint = math.lerp(C_GREEN, C_RED, entity.hit), flip_x = (entity.dir == .Right))
           held_pos := tile_pos
           held_pos.y -= 0.875
-          switch entity.held {
-            case .None:
-            case .Wood:
-              draw_sprite(.Item_Wood, held_pos, { 0.5, 0.75 })
-            case .Stone:
-              draw_sprite(.Item_Stone, held_pos, { 0.5, 0.75 })
-            case .Coal:
-              draw_sprite(.Item_Coal, held_pos, { 0.5, 0.75 })
-          }
+          draw_sprite(Item_sprite[entity.held], held_pos, { 0.5, 0.75 })
       }
     }
   }
@@ -498,17 +565,21 @@ draw_entities :: proc(pos : Cell) {
         player.hit = 0
       }
     }
-    draw_sprite(sprites[player.dir], tile_pos, { 0.5, 0.75 }, tint = math.lerp(C_WHITE, C_RED, player.hit), flip_x = (player.dir == .Right))
+    if player.shield_hit > 0 {
+      player.shield_hit -= 0.02
+      if player.shield_hit < 0 {
+        player.shield_hit = 0
+      }
+    }
+    if player.energy_hit > 0 {
+      player.energy_hit -= 0.0075
+      if player.energy_hit < 0 {
+        player.energy_hit = 0
+      }
+    }
+    draw_sprite(sprites[player.dir], tile_pos, { 0.5, 0.75 }, tint = math.lerp(math.lerp(math.lerp(C_WHITE, C_GRAY, player.shield_hit), C_YELLOW, player.energy_hit), C_RED, player.hit), flip_x = (player.dir == .Right))
     held_pos := tile_pos
     held_pos.y -= 0.875
-    switch player.held {
-      case .None:
-      case .Wood:
-        draw_sprite(.Item_Wood, held_pos, { 0.5, 0.75 })
-      case .Stone:
-        draw_sprite(.Item_Stone, held_pos, { 0.5, 0.75 })
-      case .Coal:
-        draw_sprite(.Item_Coal, held_pos, { 0.5, 0.75 })
-    }
+    draw_sprite(Item_sprite[player.held], held_pos, { 0.5, 0.75 })
   }
 }

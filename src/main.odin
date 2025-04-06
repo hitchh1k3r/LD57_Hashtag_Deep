@@ -4,16 +4,12 @@ import "base:runtime"
 
 import "core:fmt"
 import "core:math"
+import "core:math/rand"
 import "core:os"
 import "core:strings"
 import "core:sys/wasm/js"
 
 import wgl "vendor:wasm/WebGL"
-
-PLAYER_VISION :: 15
-KNOWLEDGE_EXTRA :: 5
-CAMERA_SCALE :: 5
-PLAYER_SWORD :: Damage.Three_Hit
 
 Damage :: enum u16 {
  One_Hit =  2520,
@@ -41,6 +37,7 @@ Direction_cell :: [Direction]Cell {
   .Down =  {  0,  1 },
 }
 
+generator_seed : i64
 on_screen_text := ""
 screen_dismiss := false
 has_clicked := false
@@ -54,22 +51,129 @@ input : struct {
 }
 Inputs :: bit_set[Input]
 Input :: enum {
+  R,
   Up,
   Down,
   Left,
   Right,
 }
 
+upgrades : Upgrades
+Upgrades :: bit_set[Upgrade]
+Upgrade :: enum {
+  Walking_Staff,
+  Mortar,
+  Vision_Tube,
+  Spy_Glass,
+  Iron_Lamp,
+  Diamond_Lamp,
+  Iron_Sword,
+  Diamond_Sword,
+  Wood_Mallet,
+  Stone_Mallet,
+  Iron_Mallet,
+  Diamond_Mallet,
+  Stone_Axe,
+  Iron_Axe,
+  Diamond_Axe,
+  Stone_Shield,
+  Iron_Shield,
+  Diamond_Shield,
+  Compass,
+}
+stats : struct {
+  max_health : int,
+  max_shields : int,
+  max_energy : int,
+  vision_range : int,
+  vision_extra : int,
+  vision_scale : f32,
+  attack_damage : Damage,
+  tree_harvest : Damage,
+  stone_harvest : Damage,
+}
+
+reset_world :: proc() {
+  upgrades = ~{}
+  update_stats()
+  stats.max_health = 6
+  player = {}
+  player.health = stats.max_health
+  player.energy = stats.max_energy
+  init_wizdom()
+  generator_seed = transmute(i64)(rand.uint64())
+  generate_room(0, false)
+}
+
+update_stats :: proc() {
+  if .Diamond_Shield in upgrades {
+    stats.max_shields = 6
+  } else if .Iron_Shield in upgrades {
+    stats.max_shields = 4
+  } else if .Stone_Shield in upgrades {
+    stats.max_shields = 2
+  } else {
+    stats.max_shields = 0
+  }
+
+  stats.max_energy = 12
+  if .Walking_Staff in upgrades {
+    stats.max_energy += 6
+  }
+  if .Mortar in upgrades {
+    stats.max_energy += 6
+  }
+
+  if .Spy_Glass in upgrades {
+    stats.vision_range = 50
+    stats.vision_extra = 15
+    stats.vision_scale = 13
+  } else if .Vision_Tube in upgrades {
+    stats.vision_range = 25
+    stats.vision_extra = 10
+    stats.vision_scale = 8
+  } else {
+    stats.vision_range = 15
+    stats.vision_extra = 5
+    stats.vision_scale = 5
+  }
+
+  if .Diamond_Sword in upgrades {
+    stats.attack_damage = .One_Hit
+  } else if .Iron_Sword in upgrades {
+    stats.attack_damage = .Three_Hit
+  } else {
+    stats.attack_damage = .Five_Hit
+  }
+
+  if .Diamond_Axe in upgrades {
+    stats.tree_harvest = .One_Hit
+  } else if .Iron_Axe in upgrades {
+    stats.tree_harvest = .Two_Hit
+  } else if .Stone_Axe in upgrades {
+    stats.tree_harvest = .Three_Hit
+  } else {
+    stats.tree_harvest = .Four_Hit
+  }
+
+  if .Diamond_Mallet in upgrades {
+    stats.stone_harvest = .One_Hit
+  } else if .Iron_Mallet in upgrades {
+    stats.stone_harvest = .Two_Hit
+  } else if .Stone_Mallet in upgrades {
+    stats.stone_harvest = .Four_Hit
+  } else if .Wood_Mallet in upgrades {
+    stats.stone_harvest = .Six_Hit
+  } else {
+    stats.stone_harvest = .Eight_Hit
+  }
+}
+
 main :: proc() {
   fmt.println("Initializing...")
   init_audio()
   init_graphics()
-  init_wizdom()
-  generate_room(0, false)
-  player.total_health = 6
-  player.total_energy = 6
-  player.health = 6
-  player.energy = 6
+  reset_world()
 
   // Event Handlers
     resize_canvas :: proc() {
@@ -116,9 +220,9 @@ main :: proc() {
             raw_input.key_x = true
           case "KeyC":
             raw_input.key_c = true
-          case "KeyR":
-            raw_input.key_r = true
           */
+          case "KeyR":
+            input.held += { .R }
           case "ArrowUp":
             input.held += { .Up }
           case "ArrowLeft":
@@ -161,9 +265,9 @@ main :: proc() {
             raw_input.key_x = true
           case "KeyC":
             raw_input.key_c = true
-          case "KeyR":
-            raw_input.key_r = true
           */
+          case "KeyR":
+            input.held -= { .R }
           case "ArrowUp":
             input.held -= { .Up }
           case "ArrowLeft":
@@ -251,12 +355,14 @@ main :: proc() {
 player : EntityPlayer
 
 camera_pos : V2
+scroll_speed := f32(0.15)
 
 DELTA_TIME :: 1./60.
 
 app_defunct := false
 @(export)
 step :: proc(dt : f64) -> bool {
+  free_all(context.temp_allocator)
   if app_defunct {
     return false
   }
@@ -265,7 +371,11 @@ step :: proc(dt : f64) -> bool {
   input.released = input._last - input.held
   input._last = input.held
 
-  if on_screen_text == "" && has_clicked && has_focus {
+  if player.health <= 0 && .R in input.pressed {
+    reset_world()
+  }
+
+  if on_screen_text == "" && player.health > 0 && has_clicked && has_focus {
     old_pos := player.pos
     new_dir := player.dir
     switch input.pressed & { .Up, .Left, .Right, .Down } {
@@ -303,21 +413,11 @@ step :: proc(dt : f64) -> bool {
           validation += { .Action, .No_Move }
           tile.fill = .None
           tile.item = .Wood
-          if player.energy <= 0 {
-            player.health -= 1
-            player.hit = 1
-          } else {
-            player.energy -= 1
-          }
+          use_energy()
         case .Crate:
           validation += { .Action, .No_Move }
           player.pos = old_pos
-          if player.energy <= 0 {
-            player.health -= 1
-            player.hit = 1
-          } else {
-            player.energy -= 1
-          }
+          use_energy()
         case .Stone:
           validation += { .Action, .No_Move }
           player.pos = old_pos
@@ -325,19 +425,12 @@ step :: proc(dt : f64) -> bool {
           if tile.item == .None {
             tile.item = .Stone
           }
-          if player.energy <= 0 {
-            player.health -= 1
-            player.hit = 1
-          } else {
-            player.energy -= 1
-          }
+          use_energy()
         case .Ladder_Down:
           validation += { .No_Tick }
-          delete(room.tiles)
           generate_room(room.level+1, false)
         case .Ladder_Up:
           /*
-          delete(room.tiles)
           generate_room(room.level-1, true)
           */
       }
@@ -351,9 +444,10 @@ step :: proc(dt : f64) -> bool {
             switch &entity in room.entities[idx].variant {
               case EntityZombie:
                 player.pos = old_pos
-                entity.damage += PLAYER_SWORD
+                use_energy()
+                entity.damage += stats.attack_damage
                 entity.hit = 1
-                zombie_call += 5
+                zombie_call = max(15, zombie_call+5)
                 if entity.damage == .One_Hit {
                   unordered_remove(&room.entities, idx)
                   idx -= 1
@@ -362,22 +456,39 @@ step :: proc(dt : f64) -> bool {
           }
         }
         player.dir = new_dir
-        switch tile.item {
-          case .None:
-          case .Wood, .Coal, .Stone:
-            player.held, tile.item = tile.item, player.held
+        if tile.item != .None {
+          player.held, tile.item = tile.item, player.held
         }
         update_room()
       }
     }
-    camera_pos = math.lerp(camera_pos, cell_to_v2(player.pos), half_life_interp(0.5))
+    scroll_speed = math.lerp(scroll_speed, 0.15, half_life_interp(0.25))
+    camera_pos = math.lerp(camera_pos, cell_to_v2(player.pos), half_life_interp(scroll_speed))
   }
 
-  set_camera(camera_pos, CAMERA_SCALE)
+  set_camera(camera_pos, stats.vision_scale)
   draw_room()
 
+  if player.energy_hit > 0 {
+    draw_screen_sprite(.Solid, rect_screen(), tint = { 1, 1, 0, 0.5*player.energy_hit*player.energy_hit })
+  }
+
+  if player.shield_hit > 0 {
+    draw_screen_sprite(.Solid, rect_screen(), tint = { 0.5, 0.5, 0.5, 0.5*player.shield_hit*player.shield_hit })
+  }
+
+  if player.hit > 0 {
+    draw_screen_sprite(.Solid, rect_screen(), tint = { 1, 0, 0, 0.5*player.hit*player.hit })
+  }
+
   // Screen Text:
-    if on_screen_text != "" {
+    if player.health <= 0 {
+      draw_screen_sprite(.Solid, rect_screen(), tint = { 0.25, 0, 0, 0.9 })
+      set_camera(0, 1)
+      draw_string("You Have Died", { 0, -0.1 })
+      set_camera(0, 1.75)
+      draw_string("Press 'r' to Restart", { 0, 0.225 }, color = C_GRAY)
+    } else if on_screen_text != "" {
       draw_screen_sprite(.Solid, rect_screen(), tint = { 0, 0, 0, 0.75 })
       set_camera(0, 2)
       text := on_screen_text
@@ -400,7 +511,7 @@ step :: proc(dt : f64) -> bool {
       hud_rect := rect_screen()
       hearts_rect := rect_cut_top(&hud_rect, 48)
       health := player.health
-      for h in 0..<(player.total_health+1)/2 {
+      for h in 0..<(stats.max_health+1)/2 {
         if health >= 2 {
           draw_screen_sprite(.UI_Heart_2, rect_cut_left(&hearts_rect, 48))
         } else if health >= 1 {
@@ -410,19 +521,42 @@ step :: proc(dt : f64) -> bool {
         }
         health -= 2
       }
+      shields := player.shields
+      for h in 0..<(stats.max_shields+1)/2 {
+        if shields >= 2 {
+          draw_screen_sprite(.UI_Shield_2, rect_cut_left(&hearts_rect, 48))
+        } else if shields >= 1 {
+          draw_screen_sprite(.UI_Shield_1, rect_cut_left(&hearts_rect, 48))
+        } else {
+          draw_screen_sprite(.UI_Shield_0, rect_cut_left(&hearts_rect, 48))
+        }
+        shields -= 2
+      }
       energy_rect := rect_cut_top(&hud_rect, 48)
       energy := player.energy
-      for h in 0..<(player.total_energy+2)/3 {
-        if energy >= 3 {
+      for h in 0..<(stats.max_energy+2)/6 {
+        if energy >= 6 {
           draw_screen_sprite(.UI_Bolt_3, rect_cut_left(&energy_rect, 48))
-        } else if energy >= 2 {
+        } else if energy >= 5 {
+          rect := rect_cut_left(&energy_rect, 48)
+          draw_screen_sprite(.UI_Bolt_2, rect)
+          draw_screen_sprite(.UI_Bolt_3, rect, { 1, 1, 1, 0.5 })
+        } else if energy >= 4 {
           draw_screen_sprite(.UI_Bolt_2, rect_cut_left(&energy_rect, 48))
-        } else if energy >= 1 {
+        } else if energy >= 3 {
+          rect := rect_cut_left(&energy_rect, 48)
+          draw_screen_sprite(.UI_Bolt_1, rect)
+          draw_screen_sprite(.UI_Bolt_2, rect, { 1, 1, 1, 0.5 })
+        } else if energy >= 2 {
           draw_screen_sprite(.UI_Bolt_1, rect_cut_left(&energy_rect, 48))
+        } else if energy >= 1 {
+          rect := rect_cut_left(&energy_rect, 48)
+          draw_screen_sprite(.UI_Bolt_0, rect)
+          draw_screen_sprite(.UI_Bolt_1, rect, { 1, 1, 1, 0.5 })
         } else {
           draw_screen_sprite(.UI_Bolt_0, rect_cut_left(&energy_rect, 48))
         }
-        energy -= 3
+        energy -= 6
       }
     }
 
@@ -443,4 +577,25 @@ crash :: proc(msg : string) -> ! {
   js.evaluate(fmt.tprintf("document.body.innerHTML = '%v';", msg))
   app_defunct = true
   os.exit(1)
+}
+
+damage_player :: proc(skip_shield : bool) {
+  if skip_shield || player.shields <= 0 {
+    player.health -= 1
+    player.hit = 1
+  } else {
+    player.shields -= 1
+    player.shield_hit = 1
+  }
+}
+
+use_energy :: proc() {
+  if player.energy <= 0 {
+    damage_player(true)
+  } else {
+    player.energy -= 1
+    if player.energy <= 0 {
+      player.energy_hit = 1
+    }
+  }
 }

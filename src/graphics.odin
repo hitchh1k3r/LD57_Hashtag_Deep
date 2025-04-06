@@ -9,6 +9,7 @@ import "core:sys/wasm/js"
 import wgl "vendor:wasm/WebGL"
 
 Sprite :: enum {
+  None,
   Solid,
 
   Player_Left,
@@ -60,53 +61,57 @@ Sprite :: enum {
   UI_Bolt_1,
   UI_Bolt_2,
   UI_Bolt_3,
+  UI_Shield_0,
+  UI_Shield_1,
+  UI_Shield_2,
 }
 
 ATLAS_SIZE :: 512
 Sprite_atlas :=     [Sprite][4]f32{
-  .Solid =                  [4]f32{ 210,  10,  3,  3 },
+  .None = {},
+  .Solid =                  [4]f32{ 210,  19,  3,  3 },
 
-  .Player_Left =            [4]f32{   0,  16, 32, 48 },
-  .Player_Left_Walk =       [4]f32{  32,  16, 32, 48 },
-  .Player_Down =            [4]f32{  64,  16, 32, 48 },
-  .Player_Down_Walk =       [4]f32{  96,  16, 32, 48 },
-  .Player_Up =              [4]f32{ 128,  16, 32, 48 },
-  .Player_Up_Walk =         [4]f32{ 160,  16, 32, 48 },
-  .Player_Left_Hold =       [4]f32{ 192,  16, 32, 48 },
-  .Player_Left_Walk_Hold =  [4]f32{ 224,  16, 32, 48 },
-  .Player_Down_Hold =       [4]f32{ 256,  16, 32, 48 },
-  .Player_Down_Walk_Hold =  [4]f32{ 288,  16, 32, 48 },
-  .Player_Up_Hold =         [4]f32{ 320,  16, 32, 48 },
-  .Player_Up_Walk_Hold =    [4]f32{ 352,  16, 32, 48 },
+  .Player_Left =            [4]f32{   0,  28, 32, 48 },
+  .Player_Left_Walk =       [4]f32{  32,  28, 32, 48 },
+  .Player_Down =            [4]f32{  64,  28, 32, 48 },
+  .Player_Down_Walk =       [4]f32{  96,  28, 32, 48 },
+  .Player_Up =              [4]f32{ 128,  28, 32, 48 },
+  .Player_Up_Walk =         [4]f32{ 160,  28, 32, 48 },
+  .Player_Left_Hold =       [4]f32{ 192,  28, 32, 48 },
+  .Player_Left_Walk_Hold =  [4]f32{ 224,  28, 32, 48 },
+  .Player_Down_Hold =       [4]f32{ 256,  28, 32, 48 },
+  .Player_Down_Walk_Hold =  [4]f32{ 288,  28, 32, 48 },
+  .Player_Up_Hold =         [4]f32{ 320,  28, 32, 48 },
+  .Player_Up_Walk_Hold =    [4]f32{ 352,  28, 32, 48 },
 
-  .Ladder_Down =            [4]f32{   0,  64, 32, 48 },
-  .Ladder_Up =              [4]f32{  32,  64, 32, 48 },
-  .Tree =                   [4]f32{  64,  64, 32, 48 },
-  .Crafting =               [4]f32{  96,  64, 32, 48 },
-  .Crate =                  [4]f32{ 128,  64, 32, 48 },
+  .Ladder_Down =            [4]f32{   0,  76, 32, 48 },
+  .Ladder_Up =              [4]f32{  32,  76, 32, 48 },
+  .Tree =                   [4]f32{  64,  76, 32, 48 },
+  .Crafting =               [4]f32{  96,  76, 32, 48 },
+  .Crate =                  [4]f32{ 128,  76, 32, 48 },
 
-  .Glyph_Unknown =          [4]f32{   0, 112, 32, 32 },
-  .Glyph_Floor =            [4]f32{  32, 112, 32, 32 },
-  .Glyph_Ladder =           [4]f32{  64, 112, 32, 32 },
-  .Glyph_Wall =             [4]f32{  96, 112, 32, 32 },
-  .Glyph_Tree =             [4]f32{ 128, 112, 32, 32 },
-  .Glyph_Crafting =         [4]f32{ 160, 112, 32, 32 },
-  .Glyph_Item =             [4]f32{ 192, 112, 32, 32 },
-  .Glyph_Crate =            [4]f32{ 224, 112, 32, 32 },
+  .Glyph_Unknown =          [4]f32{   0, 124, 32, 32 },
+  .Glyph_Floor =            [4]f32{  32, 124, 32, 32 },
+  .Glyph_Ladder =           [4]f32{  64, 124, 32, 32 },
+  .Glyph_Wall =             [4]f32{  96, 124, 32, 32 },
+  .Glyph_Tree =             [4]f32{ 128, 124, 32, 32 },
+  .Glyph_Crafting =         [4]f32{ 160, 124, 32, 32 },
+  .Glyph_Item =             [4]f32{ 192, 124, 32, 32 },
+  .Glyph_Crate =            [4]f32{ 224, 124, 32, 32 },
 
-  .Floor_Stone =            [4]f32{   0, 144, 32, 32 },
-  .Floor_Grass =            [4]f32{  32, 144, 32, 32 },
-  .Floor_Dirt =             [4]f32{  64, 144, 32, 32 },
-  .Floor_Sand =             [4]f32{  96, 144, 32, 32 },
-  .Floor_Water =            [4]f32{ 128, 144, 32, 32 },
+  .Floor_Stone =            [4]f32{   0, 156, 32, 32 },
+  .Floor_Grass =            [4]f32{  32, 156, 32, 32 },
+  .Floor_Dirt =             [4]f32{  64, 156, 32, 32 },
+  .Floor_Sand =             [4]f32{  96, 156, 32, 32 },
+  .Floor_Water =            [4]f32{ 128, 156, 32, 32 },
 
-  .Wall =                   [4]f32{   0, 176, 32, 64 },
-  .Wall_Sockets =           [4]f32{  32, 176, 32, 64 },
-  .Wall_Fillins =           [4]f32{  64, 176, 32, 64 },
+  .Wall =                   [4]f32{   0, 188, 32, 64 },
+  .Wall_Sockets =           [4]f32{  32, 188, 32, 64 },
+  .Wall_Fillins =           [4]f32{  64, 188, 32, 64 },
 
-  .Item_Wood =              [4]f32{  48, 240, 24, 24 },
-  .Item_Stone =             [4]f32{ 168, 240, 24, 24 },
-  .Item_Coal =              [4]f32{ 144, 240, 24, 24 },
+  .Item_Wood =              [4]f32{  48, 252, 24, 24 },
+  .Item_Stone =             [4]f32{ 168, 252, 24, 24 },
+  .Item_Coal =              [4]f32{ 144, 252, 24, 24 },
 
   .UI_Heart_0 =             [4]f32{   0, 496, 16, 16 },
   .UI_Heart_1 =             [4]f32{  16, 496, 16, 16 },
@@ -115,6 +120,9 @@ Sprite_atlas :=     [Sprite][4]f32{
   .UI_Bolt_1 =              [4]f32{  64, 496, 16, 16 },
   .UI_Bolt_2 =              [4]f32{  80, 496, 16, 16 },
   .UI_Bolt_3 =              [4]f32{  96, 496, 16, 16 },
+  .UI_Shield_0 =            [4]f32{  96, 496, 16, 16 },
+  .UI_Shield_1 =            [4]f32{ 112, 496, 16, 16 },
+  .UI_Shield_2 =            [4]f32{ 128, 496, 16, 16 },
 }
 
 TEXT_SPACING := [256]f32 {
@@ -200,7 +208,7 @@ TEXT_SPACING := [256]f32 {
   'o' = 3,
   'p' = 3,
   'q' = 3,
-  'r' = 2,
+  'r' = 3,
   's' = 2,
   't' = 3,
   'u' = 3,
@@ -208,7 +216,7 @@ TEXT_SPACING := [256]f32 {
   'w' = 5,
   'x' = 3,
   'y' = 3,
-  'z' = 3,
+  'z' = 4,
 }
 
 Color :: [4]f32
@@ -263,6 +271,10 @@ draw_screen_sprite :: proc(sprite : Sprite, dst : Rect, tint := C_WHITE) {
 }
 
 draw_sprite :: proc(sprite : Sprite, pos : V2, pivot := V2(0.5), tint := C_WHITE, flip_x := false) {
+  if sprite == .None {
+    return
+  }
+
   src := Sprite_atlas[sprite]
   offset := V2{ src[2], src[3] } * pivot
   pos := 32*pos - offset
@@ -307,10 +319,10 @@ draw_string :: proc(str : string, pos : V2, pivot := V2(0.5), color := C_WHITE) 
   pos += 0.5
   for r in str {
     if r >= '!' && r <= 'z' {
-      src := [4]f32{ f32(8*(r-'!')), 0, 8, 8 }
+      src := [4]f32{ f32(8*(r-'!')), 0, 8, 14 }
       if r >= 'a' {
         src[0] = f32(8*(r-'a'))
-        src[1] = 8
+        src[1] = 14
       }
       dst := [4]f32{ pos.x, pos.y, pos.x+src[2]/display_rect.w, pos.y+src[3]/display_rect.h }
       src[2] += src[0]

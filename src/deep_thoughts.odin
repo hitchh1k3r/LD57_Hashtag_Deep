@@ -10,6 +10,10 @@ init_wizdom :: proc() {
     target := idx + 1 + rand.int_max(len(deep_thoughts)-idx-1)
     deep_thoughts[idx], deep_thoughts[target] = deep_thoughts[target], deep_thoughts[idx]
   }
+  level_thoughts[1] =
+`Why are there trees and
+grass underground?
+#Deep #WeNeedToGoDeeper`
 }
 
 get_wizdom :: proc() -> string {
@@ -17,6 +21,8 @@ get_wizdom :: proc() -> string {
   idx += 1
   return deep_thoughts[idx % len(deep_thoughts)]
 }
+
+level_thoughts : map[int]string
 
 // NOTE (hitch) 2025-04-05 This is a list of ChatGPT's #Deep-est fantasy thoughts:
 deep_thoughts := [?]string{

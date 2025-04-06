@@ -1,16 +1,18 @@
-- [ ] Pulse player when they run out of energy
+- [x] Pulse player when they run out of energy
 - [ ] Player can die / high score
-  - [ ] Reset with same seed, or a new one
-- [ ] Don't render items (coal) over walls
+  - [x] Reset with same seed, or a new one
+  - [ ] Highscore
+- [x] Don't render items (coal) over walls
 - [ ] Draw new items
 - [ ] Implement upgrades
-- [ ] Better font
+- [x] Better font
 - [ ] Heart apples
   - [ ] Trees can drop heart apples
 - [ ] Special world deco's
   - [ ] Graveyard
   - [ ] Crafting area
   - [ ] Crates with upgrades + rare ingredients
+  - [ ] more zombies lower down
 - [ ] Sound effect
   - [ ] Ladder
   - [ ] Attack
