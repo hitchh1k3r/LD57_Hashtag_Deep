@@ -1,0 +1,26 @@
+- [ ] Pulse player when they run out of energy
+- [ ] Player can die / high score
+  - [ ] Reset with same seed, or a new one
+- [ ] Don't render items (coal) over walls
+- [ ] Draw new items
+- [ ] Implement upgrades
+- [ ] Better font
+- [ ] Heart apples
+  - [ ] Trees can drop heart apples
+- [ ] Special world deco's
+  - [ ] Graveyard
+  - [ ] Crafting area
+  - [ ] Crates with upgrades + rare ingredients
+- [ ] Sound effect
+  - [ ] Ladder
+  - [ ] Attack
+  - [ ] Hurt
+  - [ ] Wood
+  - [ ] Stone
+  - [ ] Pickup
+- [ ] More/Better enemies
+  - [ ] Zombies don't hold things
+  - [ ] Add bats
+  - [ ] Add skeletons
+  - [ ] Add water monster
+  - [ ] Monsters can drop heartapples
