@@ -10,71 +10,111 @@ import wgl "vendor:wasm/WebGL"
 
 Sprite :: enum {
   Solid,
-  Text,
-  Click_To_Play,
+
+  Player_Left,
+  Player_Left_Walk,
+  Player_Down,
+  Player_Down_Walk,
+  Player_Up,
+  Player_Up_Walk,
+  Player_Left_Hold,
+  Player_Left_Walk_Hold,
+  Player_Down_Hold,
+  Player_Down_Walk_Hold,
+  Player_Up_Hold,
+  Player_Up_Walk_Hold,
+
+  Ladder_Down,
+  Ladder_Up,
+  Tree,
+  Crafting,
+  Crate,
 
   Glyph_Unknown,
-  Glyph_Ladder,
-  Glyph_Player,
   Glyph_Floor,
+  Glyph_Ladder,
   Glyph_Wall,
-  Glyph_Chest_Closed,
-  Glyph_Chest_Opened,
   Glyph_Tree,
+  Glyph_Crafting,
+  Glyph_Item,
+  Glyph_Crate,
 
-  Floor,
+  Floor_Stone,
+  Floor_Grass,
+  Floor_Dirt,
+  Floor_Sand,
+  Floor_Water,
+
   Wall,
-
-  Up_Ladder,
-  Ladder,
-  Chest_Closed,
-  Chest_Opened,
-
-  Player_Down,
-  Tree,
-
-  Harvest_1,
-  Harvest_2,
-  Harvest_3,
+  Wall_Sockets,
+  Wall_Fillins,
 
   Item_Wood,
   Item_Stone,
   Item_Coal,
+
+  UI_Heart_0,
+  UI_Heart_1,
+  UI_Heart_2,
+  UI_Bolt_0,
+  UI_Bolt_1,
+  UI_Bolt_2,
+  UI_Bolt_3,
 }
 
-ATLAS_SIZE :: 2048
+ATLAS_SIZE :: 512
 Sprite_atlas :=     [Sprite][4]f32{
-  .Solid =                  [4]f32{  0,  29,  1,  1 } * 64,
-  .Text =                   [4]f32{  0, 231,  1,  1 } *  8,
-  .Click_To_Play =          [4]f32{  0,  30, 10,  2 } * 64,
+  .Solid =                  [4]f32{ 210,  10,  3,  3 },
 
-  .Glyph_Unknown =          [4]f32{  0,   0,  1,  1 } * 64,
-  .Glyph_Ladder =           [4]f32{  0,   1,  1,  1 } * 64,
-  .Glyph_Player =           [4]f32{  0,   2,  1,  2 } * 64,
-  .Glyph_Floor =            [4]f32{  0,   4,  1,  2 } * 64,
-  .Glyph_Wall =             [4]f32{  0,   6,  1,  2 } * 64,
-  .Glyph_Chest_Closed =     [4]f32{  0,   8,  1,  2 } * 64,
-  .Glyph_Chest_Opened =     [4]f32{  2,   8,  1,  2 } * 64,
-  .Glyph_Tree =             [4]f32{  2,   6,  1,  2 } * 64,
+  .Player_Left =            [4]f32{   0,  16, 32, 48 },
+  .Player_Left_Walk =       [4]f32{  32,  16, 32, 48 },
+  .Player_Down =            [4]f32{  64,  16, 32, 48 },
+  .Player_Down_Walk =       [4]f32{  96,  16, 32, 48 },
+  .Player_Up =              [4]f32{ 128,  16, 32, 48 },
+  .Player_Up_Walk =         [4]f32{ 160,  16, 32, 48 },
+  .Player_Left_Hold =       [4]f32{ 192,  16, 32, 48 },
+  .Player_Left_Walk_Hold =  [4]f32{ 224,  16, 32, 48 },
+  .Player_Down_Hold =       [4]f32{ 256,  16, 32, 48 },
+  .Player_Down_Walk_Hold =  [4]f32{ 288,  16, 32, 48 },
+  .Player_Up_Hold =         [4]f32{ 320,  16, 32, 48 },
+  .Player_Up_Walk_Hold =    [4]f32{ 352,  16, 32, 48 },
 
-  .Floor =                  [4]f32{  1,   4,  1,  2 } * 64,
-  .Wall =                   [4]f32{  1,   6,  1,  2 } * 64,
+  .Ladder_Down =            [4]f32{   0,  64, 32, 48 },
+  .Ladder_Up =              [4]f32{  32,  64, 32, 48 },
+  .Tree =                   [4]f32{  64,  64, 32, 48 },
+  .Crafting =               [4]f32{  96,  64, 32, 48 },
+  .Crate =                  [4]f32{ 128,  64, 32, 48 },
 
-  .Up_Ladder =              [4]f32{  2,   0,  1,  2 } * 64,
-  .Ladder =                 [4]f32{  1,   0,  1,  2 } * 64,
-  .Chest_Closed =           [4]f32{  1,   8,  1,  2 } * 64,
-  .Chest_Opened =           [4]f32{  3,   8,  1,  2 } * 64,
+  .Glyph_Unknown =          [4]f32{   0, 112, 32, 32 },
+  .Glyph_Floor =            [4]f32{  32, 112, 32, 32 },
+  .Glyph_Ladder =           [4]f32{  64, 112, 32, 32 },
+  .Glyph_Wall =             [4]f32{  96, 112, 32, 32 },
+  .Glyph_Tree =             [4]f32{ 128, 112, 32, 32 },
+  .Glyph_Crafting =         [4]f32{ 160, 112, 32, 32 },
+  .Glyph_Item =             [4]f32{ 192, 112, 32, 32 },
+  .Glyph_Crate =            [4]f32{ 224, 112, 32, 32 },
 
-  .Player_Down =            [4]f32{  1,   2,  1,  2 } * 64,
-  .Tree =                   [4]f32{  3,   6,  1,  2 } * 64,
+  .Floor_Stone =            [4]f32{   0, 144, 32, 32 },
+  .Floor_Grass =            [4]f32{  32, 144, 32, 32 },
+  .Floor_Dirt =             [4]f32{  64, 144, 32, 32 },
+  .Floor_Sand =             [4]f32{  96, 144, 32, 32 },
+  .Floor_Water =            [4]f32{ 128, 144, 32, 32 },
 
-  .Item_Wood =              [4]f32{  0,  10,  1,  1 } * 64,
-  .Item_Stone =             [4]f32{  1,  10,  1,  1 } * 64,
-  .Item_Coal =              [4]f32{  2,  10,  1,  1 } * 64,
+  .Wall =                   [4]f32{   0, 176, 32, 64 },
+  .Wall_Sockets =           [4]f32{  32, 176, 32, 64 },
+  .Wall_Fillins =           [4]f32{  64, 176, 32, 64 },
 
-  .Harvest_1 =              [4]f32{  0,  11,  1,  1 } * 64,
-  .Harvest_2 =              [4]f32{  1,  11,  1,  2 } * 64,
-  .Harvest_3 =              [4]f32{  2,  11,  1,  2 } * 64,
+  .Item_Wood =              [4]f32{  48, 240, 24, 24 },
+  .Item_Stone =             [4]f32{ 168, 240, 24, 24 },
+  .Item_Coal =              [4]f32{ 144, 240, 24, 24 },
+
+  .UI_Heart_0 =             [4]f32{   0, 496, 16, 16 },
+  .UI_Heart_1 =             [4]f32{  16, 496, 16, 16 },
+  .UI_Heart_2 =             [4]f32{  32, 496, 16, 16 },
+  .UI_Bolt_0 =              [4]f32{  48, 496, 16, 16 },
+  .UI_Bolt_1 =              [4]f32{  64, 496, 16, 16 },
+  .UI_Bolt_2 =              [4]f32{  80, 496, 16, 16 },
+  .UI_Bolt_3 =              [4]f32{  96, 496, 16, 16 },
 }
 
 TEXT_SPACING := [256]f32 {
@@ -173,6 +213,7 @@ TEXT_SPACING := [256]f32 {
 
 Color :: [4]f32
 C_WHITE   :: Color{ 1.00, 1.00, 1.00, 1.00 }
+C_RED     :: Color{ 1.00, 0.00, 0.00, 1.00 }
 C_GREEN   :: Color{ 0.25, 1.00, 0.25, 1.00 }
 C_YELLOW  :: Color{ 1.00, 1.00, 0.25, 1.00 }
 C_GRAY    :: Color{ 0.50, 0.50, 0.50, 1.00 }
@@ -193,31 +234,58 @@ set_camera :: proc(center : V2, radius : f32) {
   display_rect.pos -= 0.5
   display_rect.y *= -1
   display_rect.h *= -1
-  display_rect.arr *= radius*64
-  display_rect.pos -= center*64
+  display_rect.arr *= radius*32
+  display_rect.pos -= center*32
 }
 
-draw_sprite :: proc(sprite : Sprite, pos : V2, pivot := V2(0.5), tint := C_WHITE) {
+draw_screen_sprite :: proc(sprite : Sprite, dst : Rect, tint := C_WHITE) {
+  src := Sprite_atlas[sprite]
+  src[2] += src[0]
+  src[3] += src[1]
+  src /= ATLAS_SIZE
+  //  0,  0 = -1,  1
+  // Dw, Dh =  1, -1
+  half_screen_size := [2]f32{ f32(display_size.x), f32(display_size.y) } / 2
+  dst := [4]f32{ dst.x, dst.y, dst.x+dst.w, dst.y+dst.h }
+  dst[0] = (dst[0] / half_screen_size.x) - 1
+  dst[1] = (dst[1] / half_screen_size.y) - 1
+  dst[2] = (dst[2] / half_screen_size.x) - 1
+  dst[3] = (dst[3] / half_screen_size.y) - 1
+  INSET :: 0.00001
+  append(&draw_buffer,
+      DrawVertex{ { dst[0], dst[1] }, { src[0]+INSET, src[3]+INSET }, tint },
+      DrawVertex{ { dst[0], dst[3] }, { src[0]+INSET, src[1]-INSET }, tint },
+      DrawVertex{ { dst[2], dst[1] }, { src[2]-INSET, src[3]+INSET }, tint },
+      DrawVertex{ { dst[0], dst[3] }, { src[0]+INSET, src[1]-INSET }, tint },
+      DrawVertex{ { dst[2], dst[3] }, { src[2]-INSET, src[1]-INSET }, tint },
+      DrawVertex{ { dst[2], dst[1] }, { src[2]-INSET, src[3]+INSET }, tint },
+    )
+}
+
+draw_sprite :: proc(sprite : Sprite, pos : V2, pivot := V2(0.5), tint := C_WHITE, flip_x := false) {
   src := Sprite_atlas[sprite]
   offset := V2{ src[2], src[3] } * pivot
-  pos := 64*pos - offset
-  pos.x = math.round(pos.x)
-  pos.y = math.round(pos.y)
+  pos := 32*pos - offset
   pos += display_rect.pos
   pos /= display_rect.size
   pos += 0.5
   dst := [4]f32{ pos.x, pos.y, pos.x+src[2]/display_rect.w, pos.y+src[3]/display_rect.h }
   src[2] += src[0]
   src[3] += src[1]
+  if flip_x {
+    src[0], src[2] = src[2], src[0]
+    // flip_y:
+    // src[1], src[3] = src[3], src[1]
+  }
   src /= ATLAS_SIZE
-  INSET :: 0.000001
+  INSET :: 0.00001
   append(&draw_buffer,
-      DrawVertex{ { dst[0], dst[1] }, { src[0]+INSET, src[1]-INSET }, tint },
+      DrawVertex{ { dst[0], dst[1] }, { src[0]+INSET, src[1]+INSET }, tint },
       DrawVertex{ { dst[0], dst[3] }, { src[0]+INSET, src[3]-INSET }, tint },
-      DrawVertex{ { dst[2], dst[1] }, { src[2]+INSET, src[1]-INSET }, tint },
+      DrawVertex{ { dst[2], dst[1] }, { src[2]-INSET, src[1]+INSET }, tint },
       DrawVertex{ { dst[0], dst[3] }, { src[0]+INSET, src[3]-INSET }, tint },
-      DrawVertex{ { dst[2], dst[3] }, { src[2]+INSET, src[3]-INSET }, tint },
-      DrawVertex{ { dst[2], dst[1] }, { src[2]+INSET, src[1]-INSET }, tint },
+      DrawVertex{ { dst[2], dst[3] }, { src[2]-INSET, src[3]-INSET }, tint },
+      DrawVertex{ { dst[2], dst[1] }, { src[2]-INSET, src[1]+INSET }, tint },
     )
 }
 
@@ -231,7 +299,7 @@ meassure_text :: proc(str : string) -> (width : f32) {
 
 draw_string :: proc(str : string, pos : V2, pivot := V2(0.5), color := C_WHITE) {
   offset := V2{ meassure_text(str), 8 } * pivot
-  pos := 64*pos - offset
+  pos := 32*pos - offset
   pos.x = math.round(pos.x)
   pos.y = math.round(pos.y)
   pos += display_rect.pos
@@ -239,8 +307,11 @@ draw_string :: proc(str : string, pos : V2, pivot := V2(0.5), color := C_WHITE) 
   pos += 0.5
   for r in str {
     if r >= '!' && r <= 'z' {
-      src := Sprite_atlas[.Text]
-      src[0] += 8*f32(r-'!')
+      src := [4]f32{ f32(8*(r-'!')), 0, 8, 8 }
+      if r >= 'a' {
+        src[0] = f32(8*(r-'a'))
+        src[1] = 8
+      }
       dst := [4]f32{ pos.x, pos.y, pos.x+src[2]/display_rect.w, pos.y+src[3]/display_rect.h }
       src[2] += src[0]
       src[3] += src[1]
@@ -288,7 +359,7 @@ init_graphics :: proc() {
 
   sprite_texture := wgl.CreateTexture()
   wgl.BindTexture(wgl.TEXTURE_2D, sprite_texture)
-  img, _ := png.load_from_bytes(#load("../res/spritesheet.png"))
+  img, _ := png.load_from_bytes(#load("../res/atlas.png"))
   wgl.TexImage2DSlice(wgl.TEXTURE_2D, 0, wgl.RGBA, ATLAS_SIZE, ATLAS_SIZE, 0, wgl.RGBA, wgl.UNSIGNED_BYTE, img.pixels.buf[:])
   wgl.TexParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_MIN_FILTER, i32(wgl.NEAREST))
   wgl.TexParameteri(wgl.TEXTURE_2D, wgl.TEXTURE_MAG_FILTER, i32(wgl.NEAREST))

@@ -1,0 +1,55 @@
+           WOOD         STONE           LEATHER         COAL          IRON           DIAMOND
+WOOD      wood_mallet    X               X               X             X              X
+STONE     stone_axe    stone_mallet      X               X             X              X
+LEATHER   boat         stone_shield    vision_tube       X             X              X
+COAL      torch        gauntlet        compass         smoke_screen    X              X
+IRON      iron_axe     iron_mallet     iron_shield     lamp          iron_sword       X
+DIAMOND   diamond_axe  diamond_mallet  diamond_shield  diamond_lamp  diamond_sword  spy_glass
+
+Stats:
+  max health    (6)
+  max energy    (6)
+  vision range  (+S 15 / +K 5 / scale 5)
+  attack damage (1/5)
+  tree harvest  (1/4)
+  stone harvest ()
+  defense       (?)
+
+Ingredients:
+  WOOD
+  STONE
+  LEATHER
+  COAL
+  IRON
+  DIAMOND
+
+Recipes:
+  UNCRAFTABLE -> heart apple (+2 total health +full heal / max 12)
+
+  LEATHER+WOOD -> walking staff (energy A +3)
+  COAL+STONE -> mortar          (energy B +3)
+
+  LEATHER+LEATHER -> vision tube (vision A 25/10/8)
+  DIAMOND+DIAMOND -> spy glass   (vision A 50/15/13)
+  COAL+WOOD -> torch             (hold for +5 vision, place for vision around it)
+  IRON+COAL -> lamp              (vision A +15)
+  DIAMOND+COAL -> diamond lamp   (vision B)
+
+  IRON+IRON -> iron sword       (attack A 1/3)
+  DIAMOND+IRON -> diamond sword (attack A 1/1)
+
+  WOOD+WOOD -> wood mallet        (stone harvest A 1/6)
+  STONE+STONE -> stone mallet     (stone harvest A 1/4)
+  IRON+STONE -> iron mallet       (stone harvest A 1/2)
+  DIAMOND+STONE -> diamond mallet (stone harvest A 1/1)
+
+  STONE+WOOD -> stone axe     (wood harvest A 1/3)
+  IRON+WOOD -> iron axe       (wood harvest A 1/2)
+  DIAMOND+WOOD -> diamond axe (wood harvest A 1/1)
+
+  LEATHER+STONE -> stone shield     (defense A ?)
+  IRON+LEATHER -> iron shield       (defense A ?)
+  DIAMOND+LEATHER -> diamond shield (defense A ?)
+
+  COAL+LEATHER -> compass   (reveal the exit)
+  COAL+COAL -> smoke screen (enemies will not see you)
