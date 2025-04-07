@@ -13,7 +13,7 @@ import "core:math/linalg"
 
 // Interpolation ///////////////////////////////////////////////////////////////////////////////////
 
-  half_life_interp :: proc(half_life : f32, delta_time := DELTA_TIME) -> f32 {
+  half_life_interp :: proc(half_life : f32, delta_time := delta_time) -> f32 {
     return 1 - math.pow(0.5, f32(delta_time) / half_life)
   }
 

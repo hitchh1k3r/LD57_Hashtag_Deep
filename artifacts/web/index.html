@@ -28,12 +28,18 @@
   }
 </style>
 </head>
-<body id="body"><canvas id="canvas"></canvas><pre id="log"></pre>
+<body id="body"><canvas id="canvas"></canvas><!--<pre id="log"></pre>-->
 <script type="text/javascript" src="odin.js"></script>
 <script type="text/javascript">
   const wasmMemoryInterface = new odin.WasmMemoryInterface();
   odin.runWasm("ld57.wasm", document.getElementById("log"), {
     "game_js": {
+      get_highscore: () => {
+        return parseInt(localStorage.getItem('highscore')) || 0;
+      },
+      set_highscore: (highscore) => {
+        localStorage.setItem('highscore', highscore);
+      },
       init_audio: () => {
         window.all_audio = { idx: 0 };
       },

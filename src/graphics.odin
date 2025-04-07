@@ -30,6 +30,7 @@ Sprite :: enum {
   Tree,
   Crafting,
   Crate,
+  Altar,
 
   Glyph_Unknown,
   Glyph_Floor,
@@ -39,6 +40,8 @@ Sprite :: enum {
   Glyph_Crafting,
   Glyph_Item,
   Glyph_Crate,
+  Glyph_Water,
+  Glyph_Altar,
 
   Floor_Stone,
   Floor_Grass,
@@ -53,6 +56,50 @@ Sprite :: enum {
   Item_Wood,
   Item_Stone,
   Item_Coal,
+  Item_Iron,
+  Item_Diamond,
+  Item_Leather,
+
+  Item_Apple,
+  Item_Heartapple,
+  Item_Orange,
+  Item_Map,
+  Item_Compass,
+
+  Special_Torch,
+  Special_Smoke_Screen,
+
+  Upgrade_Walking_Staff,
+  Upgrade_Mortar,
+  Upgrade_Vision_Tube,
+  Upgrade_Spy_Glass,
+  Upgrade_Iron_Lamp,
+  Upgrade_Diamond_Lamp,
+
+  Cursed_Axe,
+  Cursed_Mallet,
+
+  Equipment_Sword_Socket,
+  Equipment_Sword_Iron,
+  Equipment_Sword_Diamond,
+
+  Equipment_Mallet_Socket,
+  Equipment_Mallet_Cursed,
+  Equipment_Mallet_Wood,
+  Equipment_Mallet_Stone,
+  Equipment_Mallet_Iron,
+  Equipment_Mallet_Diamond,
+
+  Equipment_Axe_Socket,
+  Equipment_Axe_Cursed,
+  Equipment_Axe_Stone,
+  Equipment_Axe_Iron,
+  Equipment_Axe_Diamond,
+
+  Equipment_Shield_Socket,
+  Equipment_Shield_Stone,
+  Equipment_Shield_Iron,
+  Equipment_Shield_Diamond,
 
   UI_Heart_0,
   UI_Heart_1,
@@ -67,62 +114,109 @@ Sprite :: enum {
 }
 
 ATLAS_SIZE :: 512
-Sprite_atlas :=     [Sprite][4]f32{
+Sprite_atlas :=       [Sprite][4]f32{
   .None = {},
-  .Solid =                  [4]f32{ 210,  19,  3,  3 },
+  .Solid =                    [4]f32{ 210,  19,  3,  3 },
 
-  .Player_Left =            [4]f32{   0,  28, 32, 48 },
-  .Player_Left_Walk =       [4]f32{  32,  28, 32, 48 },
-  .Player_Down =            [4]f32{  64,  28, 32, 48 },
-  .Player_Down_Walk =       [4]f32{  96,  28, 32, 48 },
-  .Player_Up =              [4]f32{ 128,  28, 32, 48 },
-  .Player_Up_Walk =         [4]f32{ 160,  28, 32, 48 },
-  .Player_Left_Hold =       [4]f32{ 192,  28, 32, 48 },
-  .Player_Left_Walk_Hold =  [4]f32{ 224,  28, 32, 48 },
-  .Player_Down_Hold =       [4]f32{ 256,  28, 32, 48 },
-  .Player_Down_Walk_Hold =  [4]f32{ 288,  28, 32, 48 },
-  .Player_Up_Hold =         [4]f32{ 320,  28, 32, 48 },
-  .Player_Up_Walk_Hold =    [4]f32{ 352,  28, 32, 48 },
+  .Player_Left =              [4]f32{   0,  28, 32, 48 },
+  .Player_Left_Walk =         [4]f32{  32,  28, 32, 48 },
+  .Player_Down =              [4]f32{  64,  28, 32, 48 },
+  .Player_Down_Walk =         [4]f32{  96,  28, 32, 48 },
+  .Player_Up =                [4]f32{ 128,  28, 32, 48 },
+  .Player_Up_Walk =           [4]f32{ 160,  28, 32, 48 },
+  .Player_Left_Hold =         [4]f32{ 192,  28, 32, 48 },
+  .Player_Left_Walk_Hold =    [4]f32{ 224,  28, 32, 48 },
+  .Player_Down_Hold =         [4]f32{ 256,  28, 32, 48 },
+  .Player_Down_Walk_Hold =    [4]f32{ 288,  28, 32, 48 },
+  .Player_Up_Hold =           [4]f32{ 320,  28, 32, 48 },
+  .Player_Up_Walk_Hold =      [4]f32{ 352,  28, 32, 48 },
 
-  .Ladder_Down =            [4]f32{   0,  76, 32, 48 },
-  .Ladder_Up =              [4]f32{  32,  76, 32, 48 },
-  .Tree =                   [4]f32{  64,  76, 32, 48 },
-  .Crafting =               [4]f32{  96,  76, 32, 48 },
-  .Crate =                  [4]f32{ 128,  76, 32, 48 },
+  .Ladder_Down =              [4]f32{   0,  76, 32, 48 },
+  .Ladder_Up =                [4]f32{  32,  76, 32, 48 },
+  .Tree =                     [4]f32{  64,  76, 32, 48 },
+  .Crafting =                 [4]f32{  96,  76, 32, 48 },
+  .Crate =                    [4]f32{ 128,  76, 32, 48 },
+  .Altar =                    [4]f32{ 160,  76, 32, 48 },
 
-  .Glyph_Unknown =          [4]f32{   0, 124, 32, 32 },
-  .Glyph_Floor =            [4]f32{  32, 124, 32, 32 },
-  .Glyph_Ladder =           [4]f32{  64, 124, 32, 32 },
-  .Glyph_Wall =             [4]f32{  96, 124, 32, 32 },
-  .Glyph_Tree =             [4]f32{ 128, 124, 32, 32 },
-  .Glyph_Crafting =         [4]f32{ 160, 124, 32, 32 },
-  .Glyph_Item =             [4]f32{ 192, 124, 32, 32 },
-  .Glyph_Crate =            [4]f32{ 224, 124, 32, 32 },
+  .Glyph_Unknown =            [4]f32{   0, 124, 32, 32 },
+  .Glyph_Floor =              [4]f32{  32, 124, 32, 32 },
+  .Glyph_Ladder =             [4]f32{  64, 124, 32, 32 },
+  .Glyph_Wall =               [4]f32{  96, 124, 32, 32 },
+  .Glyph_Tree =               [4]f32{ 128, 124, 32, 32 },
+  .Glyph_Crafting =           [4]f32{ 160, 124, 32, 32 },
+  .Glyph_Item =               [4]f32{ 192, 124, 32, 32 },
+  .Glyph_Crate =              [4]f32{ 224, 124, 32, 32 },
+  .Glyph_Water =              [4]f32{ 256, 124, 32, 32 },
+  .Glyph_Altar =              [4]f32{ 288, 124, 32, 32 },
 
-  .Floor_Stone =            [4]f32{   0, 156, 32, 32 },
-  .Floor_Grass =            [4]f32{  32, 156, 32, 32 },
-  .Floor_Dirt =             [4]f32{  64, 156, 32, 32 },
-  .Floor_Sand =             [4]f32{  96, 156, 32, 32 },
-  .Floor_Water =            [4]f32{ 128, 156, 32, 32 },
+  .Floor_Stone =              [4]f32{   0, 156, 32, 32 },
+  .Floor_Grass =              [4]f32{  32, 156, 32, 32 },
+  .Floor_Dirt =               [4]f32{  64, 156, 32, 32 },
+  .Floor_Sand =               [4]f32{  96, 156, 32, 32 },
+  .Floor_Water =              [4]f32{ 128, 156, 32, 32 },
 
-  .Wall =                   [4]f32{   0, 188, 32, 64 },
-  .Wall_Sockets =           [4]f32{  32, 188, 32, 64 },
-  .Wall_Fillins =           [4]f32{  64, 188, 32, 64 },
+  .Wall =                     [4]f32{   0, 188, 32, 64 },
+  .Wall_Sockets =             [4]f32{  32, 188, 32, 64 },
+  .Wall_Fillins =             [4]f32{  64, 188, 32, 64 },
 
-  .Item_Wood =              [4]f32{  48, 252, 24, 24 },
-  .Item_Stone =             [4]f32{ 168, 252, 24, 24 },
-  .Item_Coal =              [4]f32{ 144, 252, 24, 24 },
+  .Item_Wood =                [4]f32{   0, 252, 24, 24 },
+  .Item_Stone =               [4]f32{  24, 252, 24, 24 },
+  .Item_Coal =                [4]f32{  48, 252, 24, 24 },
+  .Item_Iron =                [4]f32{  72, 252, 24, 24 },
+  .Item_Diamond =             [4]f32{  96, 252, 24, 24 },
+  .Item_Leather =             [4]f32{ 120, 252, 24, 24 },
 
-  .UI_Heart_0 =             [4]f32{   0, 496, 16, 16 },
-  .UI_Heart_1 =             [4]f32{  16, 496, 16, 16 },
-  .UI_Heart_2 =             [4]f32{  32, 496, 16, 16 },
-  .UI_Bolt_0 =              [4]f32{  48, 496, 16, 16 },
-  .UI_Bolt_1 =              [4]f32{  64, 496, 16, 16 },
-  .UI_Bolt_2 =              [4]f32{  80, 496, 16, 16 },
-  .UI_Bolt_3 =              [4]f32{  96, 496, 16, 16 },
-  .UI_Shield_0 =            [4]f32{  96, 496, 16, 16 },
-  .UI_Shield_1 =            [4]f32{ 112, 496, 16, 16 },
-  .UI_Shield_2 =            [4]f32{ 128, 496, 16, 16 },
+  .Item_Apple =               [4]f32{ 144, 252, 24, 24 },
+  .Item_Heartapple =          [4]f32{ 168, 252, 24, 24 },
+  .Item_Orange =              [4]f32{ 192, 252, 24, 24 },
+  .Item_Map =                 [4]f32{ 216, 252, 24, 24 },
+  .Item_Compass =             [4]f32{ 240, 252, 24, 24 },
+
+  .Special_Torch =            [4]f32{   0, 276, 24, 24 },
+  .Special_Smoke_Screen =     [4]f32{  24, 276, 24, 24 },
+
+  .Upgrade_Walking_Staff =    [4]f32{  48, 276, 24, 24 },
+  .Upgrade_Mortar =           [4]f32{  72, 276, 24, 24 },
+  .Upgrade_Vision_Tube =      [4]f32{  96, 276, 24, 24 },
+  .Upgrade_Spy_Glass =        [4]f32{ 120, 276, 24, 24 },
+  .Upgrade_Iron_Lamp =        [4]f32{ 144, 276, 24, 24 },
+  .Upgrade_Diamond_Lamp =     [4]f32{ 168, 276, 24, 24 },
+
+  .Cursed_Axe =               [4]f32{  24, 348, 24, 24 },
+  .Cursed_Mallet =            [4]f32{  24, 324, 24, 24 },
+
+  .Equipment_Sword_Socket =   [4]f32{   0, 300, 24, 24 },
+  .Equipment_Sword_Iron =     [4]f32{  24, 300, 24, 24 },
+  .Equipment_Sword_Diamond =  [4]f32{  48, 300, 24, 24 },
+
+  .Equipment_Mallet_Socket =  [4]f32{   0, 324, 24, 24 },
+  .Equipment_Mallet_Cursed =  [4]f32{  24, 324, 24, 24 },
+  .Equipment_Mallet_Wood =    [4]f32{  48, 324, 24, 24 },
+  .Equipment_Mallet_Stone =   [4]f32{  72, 324, 24, 24 },
+  .Equipment_Mallet_Iron =    [4]f32{  96, 324, 24, 24 },
+  .Equipment_Mallet_Diamond = [4]f32{ 120, 324, 24, 24 },
+
+  .Equipment_Axe_Socket =     [4]f32{   0, 348, 24, 24 },
+  .Equipment_Axe_Cursed =     [4]f32{  24, 348, 24, 24 },
+  .Equipment_Axe_Stone =      [4]f32{  48, 348, 24, 24 },
+  .Equipment_Axe_Iron =       [4]f32{  72, 348, 24, 24 },
+  .Equipment_Axe_Diamond =    [4]f32{  96, 348, 24, 24 },
+
+  .Equipment_Shield_Socket =  [4]f32{   0, 372, 24, 24 },
+  .Equipment_Shield_Stone =   [4]f32{  24, 372, 24, 24 },
+  .Equipment_Shield_Iron =    [4]f32{  48, 372, 24, 24 },
+  .Equipment_Shield_Diamond = [4]f32{  72, 372, 24, 24 },
+
+  .UI_Heart_0 =               [4]f32{   0, 496, 16, 16 },
+  .UI_Heart_1 =               [4]f32{  16, 496, 16, 16 },
+  .UI_Heart_2 =               [4]f32{  32, 496, 16, 16 },
+  .UI_Bolt_0 =                [4]f32{  48, 496, 16, 16 },
+  .UI_Bolt_1 =                [4]f32{  64, 496, 16, 16 },
+  .UI_Bolt_2 =                [4]f32{  80, 496, 16, 16 },
+  .UI_Bolt_3 =                [4]f32{  96, 496, 16, 16 },
+  .UI_Shield_0 =              [4]f32{ 112, 496, 16, 16 },
+  .UI_Shield_1 =              [4]f32{ 128, 496, 16, 16 },
+  .UI_Shield_2 =              [4]f32{ 144, 496, 16, 16 },
 }
 
 TEXT_SPACING := [256]f32 {
@@ -247,6 +341,9 @@ set_camera :: proc(center : V2, radius : f32) {
 }
 
 draw_screen_sprite :: proc(sprite : Sprite, dst : Rect, tint := C_WHITE) {
+  if sprite == .None {
+    return
+  }
   src := Sprite_atlas[sprite]
   src[2] += src[0]
   src[3] += src[1]
@@ -274,7 +371,6 @@ draw_sprite :: proc(sprite : Sprite, pos : V2, pivot := V2(0.5), tint := C_WHITE
   if sprite == .None {
     return
   }
-
   src := Sprite_atlas[sprite]
   offset := V2{ src[2], src[3] } * pivot
   pos := 32*pos - offset
@@ -309,11 +405,39 @@ meassure_text :: proc(str : string) -> (width : f32) {
   return
 }
 
+draw_screen_text :: proc(str : string, pos : V2, scale := f32(2), pivot := V2(0.5), color := C_WHITE) {
+  offset := V2{ meassure_text(str), 8 } * pivot
+  pos := pos - offset*scale
+  half_screen_size := [2]f32{ f32(display_size.x), f32(display_size.y) } / 2
+  pos = (pos / half_screen_size) - 1
+  for r in str {
+    if r >= '!' && r <= 'z' {
+      src := [4]f32{ f32(8*(r-'!')), 0, 8, 14 }
+      if r >= 'a' {
+        src[0] = f32(8*(r-'a'))
+        src[1] = 14
+      }
+      dst := [4]f32{ pos.x, pos.y, pos.x+src[2]*scale/half_screen_size.x, pos.y+src[3]*scale/half_screen_size.y }
+      src[2] += src[0]
+      src[3] += src[1]
+      src /= ATLAS_SIZE
+      INSET :: 0.000001
+      append(&draw_buffer,
+          DrawVertex{ { dst[0], dst[1] }, { src[0]+INSET, src[3]-INSET }, color },
+          DrawVertex{ { dst[0], dst[3] }, { src[0]+INSET, src[1]-INSET }, color },
+          DrawVertex{ { dst[2], dst[1] }, { src[2]+INSET, src[3]-INSET }, color },
+          DrawVertex{ { dst[0], dst[3] }, { src[0]+INSET, src[1]-INSET }, color },
+          DrawVertex{ { dst[2], dst[3] }, { src[2]+INSET, src[1]-INSET }, color },
+          DrawVertex{ { dst[2], dst[1] }, { src[2]+INSET, src[3]-INSET }, color },
+        )
+    }
+    pos.x += (TEXT_SPACING[r]+1)*scale/half_screen_size.x
+  }
+}
+
 draw_string :: proc(str : string, pos : V2, pivot := V2(0.5), color := C_WHITE) {
   offset := V2{ meassure_text(str), 8 } * pivot
   pos := 32*pos - offset
-  pos.x = math.round(pos.x)
-  pos.y = math.round(pos.y)
   pos += display_rect.pos
   pos /= display_rect.size
   pos += 0.5

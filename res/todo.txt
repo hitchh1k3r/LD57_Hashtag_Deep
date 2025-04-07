@@ -1,28 +1,40 @@
+- [x] Smoke
+- [ ] Move animation
+- [x] Draw over hero (HELMET!)
+
+
+
+- [x] Altar
+- [x] Crafting
+- [x] Zombies cannot hold items
+- [x] Torch
+- [x] Trees can drop heart apples
+- [x] Render upgrades
+- [x] Cursed Axe / Mallet
+- [x] Heart apples
+  - [x] Monsters can drop heartapples
+- [x] Crate
+- [x] Draw new items
+- [x] Remove PRE log
+- [x] Add WASD input
 - [x] Pulse player when they run out of energy
-- [ ] Player can die / high score
+- [x] Player can die / high score
   - [x] Reset with same seed, or a new one
-  - [ ] Highscore
+  - [x] Highscore
 - [x] Don't render items (coal) over walls
-- [ ] Draw new items
-- [ ] Implement upgrades
+- [x] Implement upgrades
 - [x] Better font
-- [ ] Heart apples
-  - [ ] Trees can drop heart apples
-- [ ] Special world deco's
-  - [ ] Graveyard
-  - [ ] Crafting area
-  - [ ] Crates with upgrades + rare ingredients
-  - [ ] more zombies lower down
-- [ ] Sound effect
-  - [ ] Ladder
-  - [ ] Attack
-  - [ ] Hurt
-  - [ ] Wood
-  - [ ] Stone
-  - [ ] Pickup
-- [ ] More/Better enemies
-  - [ ] Zombies don't hold things
-  - [ ] Add bats
-  - [ ] Add skeletons
-  - [ ] Add water monster
-  - [ ] Monsters can drop heartapples
+
+- [x] Sound effect
+  - [x] Ladder
+  - [x] Attack
+  - [x] Hurt
+  - [x] Wood
+  - [x] Stone
+  - [x] Pickup
+- [?] More/Better enemies
+  - [?] Zombies don't hold things
+  - [?] Add bats
+  - [?] Add skeletons
+  - [?] Add water monster
+- [?] Graveyard
